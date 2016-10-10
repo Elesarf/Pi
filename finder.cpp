@@ -29,18 +29,19 @@ bool Finder::FindObject( cv::Mat frame, char cam, char place  )
         }
     }
 
-    qDebug() << "<<<<<<<<<<<<<<<<<<<<<<" << "Cascades already load";
+    //qDebug() << "<<<<<<<<<<<<<<<<<<<<<<" << "Cascades already load";
 
     qDebug() << "finding...";
     std::string nameOnWindow;
     QString bufString;
 
     cv::vector<cv::Rect> finds;
+    finds.clear();
 
     //-- Detect pacs
     for ( int indexOfcascade = 0; indexOfcascade < list.size(); ++indexOfcascade ){
 
-        faceClassificator[indexOfcascade].detectMultiScale( frame, finds, 1.01, 1.1, 1, cv::Size(180, 180) );
+        faceClassificator[indexOfcascade].detectMultiScale( frame, finds, 1.01, 1.02, 1, cv::Size(120, 120) );
 
         for( size_t i = 0; i < finds.size(); i++ )
         {
