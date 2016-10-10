@@ -27,11 +27,14 @@ signals:
 public slots:
 
     bool StartCrop ( cv::Mat );
-    bool MakeMat( QByteArray );
+    bool MakeMat( QByteArray, char, char);
 
 private slots:
 
 private:
+
+    cv::Rect roi[3];
+    uint32_t numPic;
 
 };
 

@@ -37,93 +37,90 @@ Protocol::Protocol(QObject *parent)
 
 void Protocol::ReadyRead(){
 
-//    while (1) {
+    if ( radio.available() ){
 
-        if ( radio.available() ){
+        switch (state) {
 
-            switch (state) {
+        case S_INIT:{
 
-            case S_INIT:{
+            radio.read((( char * ) ( &descriptor )), sizeof( descriptor ));
 
-                radio.read((( char * ) ( &descriptor )), sizeof( descriptor ));
+            if( descriptor.id == 0x01 ){
 
-                if( descriptor.id==0x01 ){
+                data.clear();
+                watchDogOnPlace.stop();
+                watchDogOnRecieve.stop();
 
-                    data.clear();
-                    watchDogOnPlace.stop();
-                    watchDogOnRecieve.stop();
+                memset ( &buffer, 0, sizeof( Protocol::buffer ));
 
-                    memset ( &buffer, 0, sizeof(Protocol::buffer ));
-
-                    for (uint8_t i = 0; i < sizeof( descriptor.data ); ++i){
-                        data += descriptor.data[i];
-                    }
-
-                    qDebug() << "Start recieve JPG";
-
-                    state = S_READ_DATA;
-
-                    if( (descriptor.data[0] != 0xff) && (descriptor.data[1] != 0xd8 )){
-
-                            qDebug() << "Error steram not JPG";
-                            state = S_INIT;
-
-                        }
-
-                    break;
+                for ( uint8_t i = 0; i < sizeof( descriptor.data ); ++i ){
+                    data += descriptor.data[i];
                 }
-            }
 
-            case S_READ_DATA :{
+                qDebug() << "Start recieve JPG";
 
-                radio.read(((char *) &buffer), 32);
+                state = S_READ_DATA;
 
-                uint8_t end=0;
+                if(( descriptor.data[0] != 0xff ) && ( descriptor.data[1] != 0xd8 )){
 
-                    if( buffer.id==0x00 ){
-                        for (uint8_t i = 0; i < sizeof( buffer.data ); ++i){
-                            data += buffer.data[i];
-                        }
-                        break;
-
-                    } else if (buffer.id == 0x02){
-
-                        for ( uint8_t i=0; i < sizeof( buffer.data ); ++i ){
-                            if ( !( buffer.data[i] == 0xff && buffer.data[i+1] == 0xd9 )){
-                                data += buffer.data[i];
-                                end = i;
-                            } else {
-
-                                data += buffer.data[end + 1];
-                                data += buffer.data[end + 2];
-                                qDebug() << "Stop recieve JPG";
-
-                                emit EndOfRecive( data, descriptor );
-                                emit Testrec(data);
-
-                                state = S_INIT;
-
-                                if( descriptor.numCam == 0x32 ){
-                                    watchDogOnRecieve.start(0);
-                                    }
-
-                                break;
-                            }
-
-                        }
+                        qDebug() << "Error steram not JPG";
+                        state = S_INIT;
 
                     }
 
-                break;
-            }
-
-            default:
                 break;
             }
         }
-        watchDogOnPlace.start(0);
+
+        case S_READ_DATA :{
+
+            radio.read(((char *) &buffer), 32);
+
+            uint8_t end=0;
+
+                if( buffer.id == 0x00 ){
+                    for (uint8_t i = 0; i < sizeof( buffer.data ); ++i){
+                        data += buffer.data[i];
+                    }
+                    break;
+
+                } else if (buffer.id == 0x02){
+
+                    for ( uint8_t i=0; i < sizeof( buffer.data ); ++i ){
+                        if ( !( buffer.data[i] == 0xff && buffer.data[i+1] == 0xd9 )){
+                            data += buffer.data[i];
+                            end = i;
+                        } else {
+
+                            data += buffer.data[end + 1];
+                            data += buffer.data[end + 2];
+                            qDebug() << "Stop recieve JPG";
+
+                            emit EndOfRecive( data, descriptor );
+                            emit GoToCrop( data, descriptor.numCam, descriptor.numPlace );
+
+                            state = S_INIT;
+
+                            if( descriptor.numCam == 0x32 ){
+                                watchDogOnRecieve.start( 0 );
+                                }
+
+                            break;
+                        }
+
+                    }
+
+                }
+
+            break;
+        }
+
+        default:
+            break;
+        }
     }
-//}
+    watchDogOnPlace.start(0);
+}
 
 bool Protocol::InitRF(){
 
@@ -153,7 +150,7 @@ bool Protocol::InitRF(){
         qDebug() << QString( "Init RF on address #%1 ....Ok" ).arg( placeNumber );
 
 
-        watchDogOnRecieve.start(6000);
+        watchDogOnRecieve.start(8000);
         watchDogOnPlace.start(1);
         //ReadyRead();
 
@@ -162,6 +159,8 @@ bool Protocol::InitRF(){
 }
 
 bool Protocol::InitRF( uint8_t add){
+
+        add++;
 
         return true;
 

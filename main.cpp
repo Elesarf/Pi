@@ -8,7 +8,12 @@
 #include <QFile>
 #include <QThread>
 
+#include <stdio.h>
+#include <cstdlib>
+
 QT_USE_NAMESPACE
+
+cv::Mat ShowJPG(QByteArray array);
 
 int main(int argc, char *argv[])
 {
@@ -23,27 +28,27 @@ int main(int argc, char *argv[])
 
     int numberOfPic = 0;
 
-    QObject::connect( &pr, &Protocol::EndOfRecive, [&a, &pr, &numberOfPic]( QByteArray &data, Protocol::Descriptor &descriptor ){
+    QObject::connect( &pr, &Protocol::EndOfRecive, [&a, &pr, &numberOfPic]( const QByteArray &data, const Protocol::Descriptor &descriptor ){
 
         qDebug() << "Size = " << data.size();
 
-        QFile f( QString("/mnt/smb/screen_%1_%2_#%3.jpg").arg( descriptor.numCam ).arg( descriptor.numPlace ).arg( numberOfPic ) );
-        f.open( QFile::WriteOnly );
-        f.write( data );
-        numberOfPic++;
+//        QFile f( QString("/mnt/smb/screen_%1_%2_#%3.jpg").arg( descriptor.numCam ).arg( descriptor.numPlace ).arg( numberOfPic ) );
+//        f.open( QFile::WriteOnly );
+//        f.write( data );
+//        numberOfPic++;
 
-        qDebug() << QString( "Save JPG cam #%1 place #%2  #%3 ... Ok" ).arg( descriptor.numCam ).arg( descriptor.numPlace ).arg( numberOfPic );
+//        qDebug() << QString( "Save JPG cam #%1 place #%2  #%3 ... Ok" ).arg( descriptor.numCam ).arg( descriptor.numPlace ).arg( numberOfPic );
 
     });
 
     QObject::connect( &pr, &Protocol::EndReadPlace, [&a, &pr](){
 
-
             pr.InitRF();
 
         });
 
-    //QObject::connect( &pr, SIGNAL(Testrec(QByteArray)), &cr, SLOT(MakeMat( QByteArray )));
+    QObject::connect( &pr, SIGNAL( GoToCrop( QByteArray, const char, const char )),
+                      &cr, SLOT( MakeMat( QByteArray, char, char )));
 
 
     pr.moveToThread( &thRf );
@@ -56,9 +61,6 @@ int main(int argc, char *argv[])
 
     return a.exec();
 }
-
-
-
 
 
 

@@ -36,9 +36,9 @@ public:
 
 signals:
 
-    void EndOfRecive( QByteArray &, Descriptor & );
+    void EndOfRecive( const QByteArray &, const Descriptor & );
     void EndReadPlace( const uint8_t);
-    void Testrec( QByteArray );
+    void GoToCrop( QByteArray, const char, const char );
 
 public slots:
 
