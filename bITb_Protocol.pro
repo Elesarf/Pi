@@ -13,7 +13,7 @@ LIBS += /home/elesar/opt/gcc-4.7-linaro-rpi-gnueabihf/arm-linux-gnueabihf/lib/li
 
 LIBS += -lrf24 -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_objdetect
 
-target.path = /
+target.path = /sbin/
 INSTALLS += target
 TARGET = Protocol_b
 
@@ -21,11 +21,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
     protocol.cpp \
-    jpgcrop.cpp
+    jpgcrop.cpp \
+    finder.cpp
 
 HEADERS += \
     protocol.h \
-    jpgcrop.h
+    jpgcrop.h \
+    finder.h
 
 
 

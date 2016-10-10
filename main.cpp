@@ -1,5 +1,6 @@
 #include "protocol.h"
 #include "jpgcrop.h"
+#include "finder.h"
 
 #include <QObject>
 #include <QDebug>
@@ -11,6 +12,9 @@
 #include <stdio.h>
 #include <cstdlib>
 
+Q_DECLARE_METATYPE( cv::Mat )
+Q_DECLARE_METATYPE( Protocol::Descriptor )
+
 QT_USE_NAMESPACE
 
 cv::Mat ShowJPG(QByteArray array);
@@ -18,11 +22,16 @@ cv::Mat ShowJPG(QByteArray array);
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    qRegisterMetaType < cv::Mat >( "cv::Mat" );
+    qRegisterMetaType < Protocol::Descriptor >( "Protocol::Descriptor" );
 
     qDebug() << "";
 
     Protocol pr;
     JPGcrop  cr;
+    Finder   fd;
+
+    QThread  thFd;
     QThread  thRf;
     QThread  thCr;
 
@@ -31,13 +40,6 @@ int main(int argc, char *argv[])
     QObject::connect( &pr, &Protocol::EndOfRecive, [&a, &pr, &numberOfPic]( const QByteArray &data, const Protocol::Descriptor &descriptor ){
 
         qDebug() << "Size = " << data.size();
-
-//        QFile f( QString("/mnt/smb/screen_%1_%2_#%3.jpg").arg( descriptor.numCam ).arg( descriptor.numPlace ).arg( numberOfPic ) );
-//        f.open( QFile::WriteOnly );
-//        f.write( data );
-//        numberOfPic++;
-
-//        qDebug() << QString( "Save JPG cam #%1 place #%2  #%3 ... Ok" ).arg( descriptor.numCam ).arg( descriptor.numPlace ).arg( numberOfPic );
 
     });
 
@@ -48,16 +50,26 @@ int main(int argc, char *argv[])
         });
 
     QObject::connect( &pr, SIGNAL( GoToCrop( QByteArray, const char, const char )),
-                      &cr, SLOT( MakeMat( QByteArray, char, char )));
+                      &cr, SLOT( MakeMat( QByteArray, char, char ))
+                      );
+
+    QObject::connect( &cr, SIGNAL( EndOfCrop( cv::Mat, char, char )),
+                      &fd, SLOT ( FindObject( cv::Mat, char, char ))
+                );
 
 
     pr.moveToThread( &thRf );
     cr.moveToThread( &thCr );
+    fd.moveToThread( &thFd );
 
-    thCr.start();
+
+
     thRf.start();
+    thCr.start();
+    thFd.start();
 
     pr.InitRF();
+    fd.LoadCascades();
 
     return a.exec();
 }

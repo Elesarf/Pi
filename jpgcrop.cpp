@@ -9,13 +9,9 @@ JPGcrop::JPGcrop( QObject *parent )
     :QObject( parent )
 {
 
-//    roi1 = cv::Rect( 10, 200, 470, 305 );
-//    roi2 = cv::Rect( 360, 215, 755, 355 );
-//    roi3 = cv::Rect( 1020, 210, 595, 300 );
-
-    roi[0] = cv::Rect( 10, 200, 470, 305 );
-    roi[1] = cv::Rect( 360, 215, 755, 355 );
-    roi[2] = cv::Rect( 1000, 210, 595, 300 );
+    roi[0] = cv::Rect( 0, 200, 500, 300 );
+    roi[1] = cv::Rect( 360, 200, 755, 300 );
+    roi[2] = cv::Rect( 1000, 235, 595, 270 );
 
     numPic = 0;
 
@@ -34,10 +30,11 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
                 w = q;
         }
 
-        if( w <= 0 )
-        {
+        if( w <= 0 ){
+
             array[array.size() - 1] = 0xd9;
             array[array.size() - 2] = 0xff;
+
         }
 
         if( array[0] == 0xff && array[1] == 0xd8){
@@ -55,6 +52,8 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
                                                                                         ).toStdString();
 
                             cv::imwrite( str, matImg( roi[i-1] ) );
+
+                            emit EndOfCrop( matImg( roi[i-1] ), cam, i );
 
                         }
                 }
