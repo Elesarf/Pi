@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <qendian.h>
 #include <QApplication>
+#include <QThread>
 
 #define RF24_LINUX
 
@@ -10,12 +11,15 @@ RF24 radio(RPI_V2_GPIO_P1_22, RPI_V2_GPIO_P1_24, BCM2835_SPI_SPEED_8MHZ);
 
 Protocol::Protocol(QObject *parent)
     : QObject( parent )
+    , watchDogOnRecieve(this)
+    , watchDogOnPlace(this)
     , state(S_INIT)
 {
 
     connect( &watchDogOnRecieve, &QTimer::timeout, [this](){
 
-        //qDebug() << "reset on watchdog";
+        qDebug() << "INit Thread " << QThread::currentThreadId();
+
         InitRF();
 
     });
@@ -32,6 +36,9 @@ Protocol::Protocol(QObject *parent)
 
     watchDogOnPlace.setSingleShot(true);
     watchDogOnRecieve.setSingleShot(true);
+
+    watchDogOnRecieve.start(8000);
+    watchDogOnPlace.start(1);
 
 }
 
@@ -149,13 +156,10 @@ bool Protocol::InitRF(){
         qDebug() << QString( "Init RF on address #%1" ).arg( placeNumber );
         qDebug() << QString( "Init RF on address #%1 ....Ok" ).arg( placeNumber );
 
-
         watchDogOnRecieve.start(8000);
-        watchDogOnPlace.start(1);
-        //ReadyRead();
+        watchDogOnPlace.start(0);
 
         return true;
-
 }
 
 bool Protocol::InitRF( uint8_t add){
@@ -177,7 +181,9 @@ bool Protocol::StopRF(){
     return true;
 }
 
-void Protocol::Reset(){
+void Protocol::Start(){
+
+    InitRF();
 
 }
 

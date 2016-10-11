@@ -32,7 +32,7 @@ signals:
 
 public slots:
 
-   bool FindObject( cv::Mat, char, char );
+   bool FindObject( cv::Mat, char, qint8 );
    QFileInfoList LoadCascades();
 
 private slots:

@@ -14,6 +14,7 @@
 
 Q_DECLARE_METATYPE( cv::Mat )
 Q_DECLARE_METATYPE( Protocol::Descriptor )
+Q_DECLARE_METATYPE( std::uint8_t )
 
 QT_USE_NAMESPACE
 
@@ -22,7 +23,9 @@ cv::Mat ShowJPG(QByteArray array);
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+
     qRegisterMetaType < cv::Mat >( "cv::Mat" );
+    qRegisterMetaType < std::uint8_t >( "std::uint8_t" );
     qRegisterMetaType < Protocol::Descriptor >( "Protocol::Descriptor" );
 
     qDebug() << "";
@@ -43,6 +46,8 @@ int main(int argc, char *argv[])
 
     });
 
+    QObject::connect(&thRf, SIGNAL(started()), &pr, SLOT(Start()));
+
     QObject::connect( &pr, &Protocol::EndReadPlace, [&a, &pr](){
 
             pr.InitRF();
@@ -53,8 +58,8 @@ int main(int argc, char *argv[])
                       &cr, SLOT( MakeMat( QByteArray, char, char ))
                       );
 
-    QObject::connect( &cr, SIGNAL( EndOfCrop( cv::Mat, char, char )),
-                      &fd, SLOT ( FindObject( cv::Mat, char, char ))
+    QObject::connect( &cr, SIGNAL( EndOfCrop( cv::Mat, char, qint8 )),
+                      &fd, SLOT ( FindObject( cv::Mat, char, qint8 ))
                 );
 
 
@@ -62,13 +67,15 @@ int main(int argc, char *argv[])
     cr.moveToThread( &thCr );
     fd.moveToThread( &thFd );
 
+    qDebug() << "Main Thread " << QThread::currentThreadId();
+
 
 
     thRf.start();
     thCr.start();
     thFd.start();
 
-    pr.InitRF();
+    //pr.InitRF();
     fd.LoadCascades();
 
     return a.exec();

@@ -45,7 +45,7 @@ public slots:
     bool InitRF();
     bool InitRF( uint8_t );
     bool StopRF();
-    void Reset();
+    void Start();
 
 private slots:
 
