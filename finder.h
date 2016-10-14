@@ -28,11 +28,11 @@ public:
 
 signals:
 
-    void FindEnd();
+    void FindEnd( const char, const char, const qint8 );
 
 public slots:
 
-   bool FindObject( cv::Mat, char, qint8 );
+   bool FindObject( const cv::Mat &, char, qint8 );
    QFileInfoList LoadCascades();
 
 private slots:

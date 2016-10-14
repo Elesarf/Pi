@@ -1,15 +1,16 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#include <RF24.h>
+
 #include <QObject>
 #include <QTimer>
 
 class Protocol:public QObject
 {
     Q_OBJECT
-public:
 
-    //~Protocol();
+public:
 
     enum State {
         S_INIT,
@@ -53,6 +54,7 @@ private slots:
 
 private:
 
+    RF24 radio;
     Descriptor descriptor;
     Buffer buffer;
     QByteArray data;

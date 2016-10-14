@@ -19,11 +19,11 @@ Finder::Finder( QObject *parent )
 
 }
 
-bool Finder::FindObject( cv::Mat frame, char cam, qint8 place  )
+bool Finder::FindObject( const cv::Mat &frame, char cam, qint8 place  )
 {
-    cv::CascadeClassifier faceClassificator[list.size()];
 
-     qDebug() << "Finder Thread " << QThread::currentThreadId();
+
+    cv::CascadeClassifier faceClassificator[list.size()];
 
     for(int i = 0; i < list.size(); ++i ){
 
@@ -37,39 +37,41 @@ bool Finder::FindObject( cv::Mat frame, char cam, qint8 place  )
         }
     }
 
-    //qDebug() << "<<<<<<<<<<<<<<<<<<<<<<" << "Cascades already load";
-
     std::string nameOnWindow;
     QString bufString;
 
     cv::vector<cv::Rect> finds;
-    //finds.clear();
+    cv::vector<cv::Rect> tempFinds;
 
-    qDebug() << QString( "finding on pack %1" ).arg( place );
+    qint8 indexOfright = 0;
+
+    tempFinds.clear();
+    finds.clear();
 
     //-- Detect pacs
     for ( int indexOfcascade = 0; indexOfcascade < list.size(); ++indexOfcascade ){
 
-        faceClassificator[indexOfcascade].detectMultiScale( frame, finds, 1.01, 3,
-                                                    0|CV_HAAR_DO_ROUGH_SEARCH, cv::Size( 60, 60 ), cv::Size( 400, 250 ) );
+        faceClassificator[indexOfcascade].detectMultiScale( frame, finds, 1.02, 2,
+                                CV_HAAR_DO_ROUGH_SEARCH, cv::Size( 60, 60 ), cv::Size( 500, 250 ) );
 
-        for( size_t i = 0; i < finds.size(); i++ )
-        {
+        if ( finds.size() >= tempFinds.size()){
 
-            bufString = list[indexOfcascade].fileName();
-            bufString.chop( 4 );
-            nameOnWindow = bufString.toStdString();
+                tempFinds = finds;
+                indexOfright = indexOfcascade;
 
-            qDebug()<<"found "<<QString::fromStdString( nameOnWindow ) << QString( " on cam_#%1_pack_#%2"
-                                                                                 ).arg( cam ).arg( place ) ;
-
-        }
+            }
 
     }
 
+            bufString = list[indexOfright].fileName();
+            bufString.chop( 4 );
+            nameOnWindow = bufString.toStdString();
+
+            qDebug()<<"found "<<QString::fromStdString( nameOnWindow ) << QString( " on pack_#%1"
+                                                                    ).arg( place + ( cam - 0x30 ) + 1 ) ;
+            emit FindEnd( place, cam, indexOfright );
 
 
-                qDebug() << QString( "finding end on pack %1" ).arg( place );
 
     return true;
 }
