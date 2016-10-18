@@ -19,7 +19,7 @@ Finder::Finder( QObject *parent )
 
 }
 
-bool Finder::FindObject( const cv::Mat &frame, char cam, qint8 place  )
+bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place)
 {
 
 
@@ -68,10 +68,9 @@ bool Finder::FindObject( const cv::Mat &frame, char cam, qint8 place  )
             nameOnWindow = bufString.toStdString();
 
             qDebug()<<"found "<<QString::fromStdString( nameOnWindow ) << QString( " on pack_#%1"
-                                                                    ).arg( place + ( cam - 0x30 ) + 1 ) ;
-            emit FindEnd( place, cam, indexOfright );
+                                                                    ).arg( pic + ( cam - 0x30 ) + 1 ) ;
 
-
+            emit FindEnd( place, (pic + ( cam - 0x30 ) + 1), indexOfright );
 
     return true;
 }

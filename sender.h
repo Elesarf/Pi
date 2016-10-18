@@ -5,6 +5,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
+#include <QDebug>
 
 class Sender : public QObject
 {
@@ -12,6 +13,7 @@ class Sender : public QObject
     Q_OBJECT
 
 public:
+
     explicit Sender( QObject *parent = 0 );
 
 signals:
@@ -20,11 +22,13 @@ signals:
 
 public slots:
 
-    bool SendPlease ( const char, const char, const qint8 );
+    bool SendPlease ( const qint8, const qint8, const qint8 );
 
 private:
 
-    QByteArray data;
+    qint8 sz;
+    QByteArray sendStr;
+    QByteArray buffer;
     QNetworkAccessManager *man;
     QNetworkReply *reply;
     QNetworkRequest request;

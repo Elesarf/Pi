@@ -38,8 +38,8 @@ int main(int argc, char *argv[])
     QThread  thRf;
     QThread  thCr;
 
-    QObject::connect( &fd, SIGNAL( Finder::FindEnd( const char, const char, const qint8 )),
-                      &sd, SLOT( Sender::SendPlease( char, char, qint8)));
+    QObject::connect( &fd, SIGNAL( FindEnd( const qint8, const qint8, const qint8 )),
+                      &sd, SLOT( SendPlease(const qint8, const qint8, const qint8)));
 
     QObject::connect( &thRf, SIGNAL( started() ), &pr, SLOT( Start() ));
 
@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
                       &cr, SLOT( MakeMat( QByteArray, char, char ))
                     );
 
-    QObject::connect( &cr, SIGNAL( EndOfCrop( cv::Mat, char, qint8 )),
-                      &fd, SLOT ( FindObject( cv::Mat, char, qint8 ))
+    QObject::connect( &cr, SIGNAL( EndOfCrop( cv::Mat, char, qint8, qint8 )),
+                      &fd, SLOT ( FindObject( cv::Mat, char, qint8, qint8 ))
                     );
 
 

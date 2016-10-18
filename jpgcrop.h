@@ -22,11 +22,10 @@ public:
 
 signals:
 
-    void EndOfCrop( const cv::Mat &, char, qint8);
+    void EndOfCrop( const cv::Mat &, char, qint8, qint8 );
 
 public slots:
 
-    bool StartCrop ( cv::Mat );
     bool MakeMat( QByteArray, char, char);
 
 private slots:

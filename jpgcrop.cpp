@@ -22,7 +22,7 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
     qDebug() << "Start make Mat ... ";
 
         int w = 0;
-        std::string nameStr = "/mnt/smb/pack_%1_%2_#%3" + std::to_string( array.size() ) + ".jpg";
+        //std::string nameStr = "/mnt/smb/pack_%1_%2_#%3" + std::to_string( array.size() ) + ".jpg";
 
         for( int q = 1; q < array.size() ; ++q ){
 
@@ -39,10 +39,9 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
 
         if( array[0] == 0xff && array[1] == 0xd8){
 
-            cv::waitKey( 10 );
-
             cv::Mat img = cv::Mat( 1600, 896, CV_32SC4, array.data() );
             cv::Mat matImg = cv::imdecode( img, CV_LOAD_IMAGE_ANYCOLOR );
+            //cv::imwrite(nameStr,matImg);
 
                     for(uint8_t i = 1; i <= 3; ++i ){
 
@@ -53,7 +52,7 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
                             cv::imwrite( str, matImg( roi[i-1] ) );
                             ++numPic;
 
-                            emit EndOfCrop( matImg( roi[i-1] ), cam, i );
+                            emit EndOfCrop( matImg( roi[i-1] ), cam, i, place );
 
                         }
 
@@ -61,17 +60,10 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
             img.release();
             matImg.release();
 
-            cv::waitKey(10);
-
             return true;
         }
 
     return false;
-}
-
-bool JPGcrop::StartCrop( cv::Mat mt ){
-
-    return true;
 }
 
 
