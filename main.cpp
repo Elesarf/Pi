@@ -19,9 +19,14 @@ Q_DECLARE_METATYPE( std::uint8_t )
 
 QT_USE_NAMESPACE
 
+#include <dlfcn.h>
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
+    dlopen("libcrypto.so", RTLD_NOW | RTLD_GLOBAL);
+
+    dlopen("libcrypto.so", RTLD_NOW | RTLD_GLOBAL);
 
     qRegisterMetaType < cv::Mat >( "cv::Mat" );
     qRegisterMetaType < std::uint8_t >( "std::uint8_t" );
@@ -39,9 +44,12 @@ int main(int argc, char *argv[])
     QThread  thCr;
 
     QObject::connect( &fd, SIGNAL( FindEnd( const qint8, const qint8, const qint8 )),
-                      &sd, SLOT( SendPlease(const qint8, const qint8, const qint8)));
+                      &sd, SLOT( SendPlease(const qint8, const qint8, const qint8))
+                      );
 
-    QObject::connect( &thRf, SIGNAL( started() ), &pr, SLOT( Start() ));
+    QObject::connect( &thRf, SIGNAL( started() ),
+                      &pr,   SLOT( Start() )
+                      );
 
     QObject::connect( &pr, SIGNAL( GoToCrop( QByteArray, const char, const char )),
                       &cr, SLOT( MakeMat( QByteArray, char, char ))
@@ -51,10 +59,15 @@ int main(int argc, char *argv[])
                       &fd, SLOT ( FindObject( cv::Mat, char, qint8, qint8 ))
                     );
 
+    QObject thgr; // threadgroup
 
     pr.moveToThread( &thRf );
     cr.moveToThread( &thCr );
-    fd.moveToThread( &thFd );
+
+    fd.setParent(&thgr);
+    sd.setParent(&thgr);
+
+    thgr.moveToThread( &thFd );
 
     thRf.start();
     thCr.start();

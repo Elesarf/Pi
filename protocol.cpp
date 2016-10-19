@@ -59,7 +59,7 @@ void Protocol::ReadyRead(){
 
                 if(( descriptor.data[0] != 0xff ) && ( descriptor.data[1] != 0xd8 )){
 
-                        qDebug() << "Error steram not JPG";
+                        qDebug() << "Error recieve picture";
                         state = S_INIT;
 
                     }
@@ -94,7 +94,7 @@ void Protocol::ReadyRead(){
                             data += buffer.data[end + 1];
                             data += buffer.data[end + 2];
 
-                            qDebug() << "Stop recieve JPG";
+                            qDebug() << "Recieve picture ok ";
 
                             emit EndOfRecive( data, descriptor );
                             emit GoToCrop( data, descriptor.numCam, descriptor.numPlace );
@@ -151,11 +151,6 @@ bool Protocol::InitRF(){
         return true;
 }
 
-bool Protocol::InitRF( uint8_t add){
-
-        return true;
-}
-
 bool Protocol::StopRF(){
 
     radio.stopListening();
@@ -171,7 +166,7 @@ void Protocol::Start(){
 
     if( !radio.begin() ){
 
-            qDebug() << "Error init RF24";                      // Begin))
+            qDebug() << "Error: init RF24 fail";                      // Begin crash
 
         }
 

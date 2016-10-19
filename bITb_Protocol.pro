@@ -15,7 +15,8 @@ LIBS +=  /mnt/rasp-pi-rootfs/usr/local/lib/librf24.so
 LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_objdetect
 
 #LIBS += -lcrypto -lssl
-OPENSSL_LIBS='-L/opt/ssl/lib -lssl -lcrypto'
+#OPENSSL_LIBS='-L/opt/ssl/lib -lssl -lcrypto'
+LIBS += -ldl -lcrypto -lssl
 
 target.path = /sbin
 INSTALLS += target

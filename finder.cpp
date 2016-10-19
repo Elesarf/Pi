@@ -2,7 +2,6 @@
 
 #include <QDebug>
 #include <QString>
-#include <QThread>
 
 #include <iostream>
 
@@ -10,8 +9,6 @@
 #include "opencv2/objdetect/objdetect.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-
-
 
 Finder::Finder( QObject *parent )
     :QObject( parent )
@@ -21,6 +18,7 @@ Finder::Finder( QObject *parent )
 
 bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place)
 {
+    qDebug() << "FindObject... ";
 
 
     cv::CascadeClassifier faceClassificator[list.size()];
@@ -31,7 +29,7 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place)
 
         if( !faceClassificator[i].load( patch ) ){
 
-            qDebug() << "--(!)Error loading\n";
+            qDebug() << "Error: loading classificator";
             return false;
 
         }
@@ -82,15 +80,15 @@ QFileInfoList Finder::LoadCascades(){
 
     filters << "*.xml";
     cascadeDir.setNameFilters(filters);
-        if( !cascadeDir.exists("/home/pi/Haars/") )
+        if( !cascadeDir.exists( "/home/pi/Haars/" ) )
             qDebug() << "No such cascade directory \n";
 
-        cascadeDir.cd("/home/pi/Haars/");
+        cascadeDir.cd( "/home/pi/Haars/" );
         list = cascadeDir.entryInfoList();
 
         if(list.empty()){
 
-                qDebug() << "<<<<<<<<<<<<<<< List of cascades not loaded";
+                qDebug() << "Error: list of cascades not loaded";
 
         }
 

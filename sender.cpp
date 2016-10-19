@@ -1,28 +1,26 @@
 #include "sender.h"
+#include <signal.h>
 
 Sender::Sender(QObject *parent) :
     QObject(parent)
+  , man(this)
 
 {
-
     sz = 0;
     request.setUrl(( QUrl( QString( "https://kz0.vt-serv.com:500/?" ))));
     request.setHeader(QNetworkRequest::ContentTypeHeader, QString("application/x-www-form-urlencoded"));
 
-//    Sender::connect( reply, &QNetworkReply::finished, [this](){
+    Sender::connect( &man, &QNetworkAccessManager::finished, [this](QNetworkReply *reply){
 
-//            QByteArray bytes = reply -> readAll();                                  // bytes
+                        reply->deleteLater();
 
-//            qDebug() << "Send finished";
+                    });
 
-//        });
+    Sender::connect( &man, &QNetworkAccessManager::sslErrors, [this](QNetworkReply *reply, const QList<QSslError> &errors ){
 
-//    Sender::connect( reply, &QNetworkReply::sslErrors, [this]( const QList<QSslError> &errors ){
+                         reply -> ignoreSslErrors( errors );
 
-//                         qDebug() << "Ssl error" << errors;
-//                         reply -> ignoreSslErrors( errors );
-
-//                     });
+                     });
 
 }
 
@@ -34,7 +32,7 @@ bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c){
             ++sz;
             qDebug() << QString( "%1;%2;%3|" ).arg( a - 0x30 ).arg( b ).arg( c );
 
-        } else if( sz == 2 ) {
+        } else {
 
             buffer.append( QString( "%1;%2;%3|" ).arg( a - 0x30 ).arg( b ).arg( c ));
             qDebug() << QString( "%1;%2;%3|" ).arg( a - 0x30 ).arg( b ).arg( c );
@@ -44,42 +42,19 @@ bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c){
             buffer.append( "}" );
             sendStr.append( buffer );
 
-            man = new QNetworkAccessManager ();
-            reply = man -> post( request, sendStr );
+            auto reply = man.post( request, sendStr );
+            Q_UNUSED( reply );
 
-            Sender::connect( reply, &QNetworkReply::finished, [this](){
-
-                    QByteArray bytes = reply -> readAll();                                  // bytes
-
-                    qDebug() << "Send finished" << bytes;
-
-                    man->deleteLater();
-                    reply->deleteLater();
-
-                });
-
-            Sender::connect( reply, &QNetworkReply::sslErrors, [this]( const QList<QSslError> &errors ){
-
-                                 qDebug() << "Ssl error" << errors;
-                                 reply -> ignoreSslErrors( errors );
-
-                             });
-
-            qDebug() << "flush buffer" << sendStr;
+            qDebug() << "Send to server ";
             sendStr.clear();
             buffer.clear();
             sz = 0;
 
+            return true;
         }
 
-    return true;
+    return false;
 }
-
-
-
-
-
-
 
 
 

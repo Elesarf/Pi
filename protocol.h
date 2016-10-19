@@ -44,7 +44,6 @@ signals:
 public slots:
 
     bool InitRF();
-    bool InitRF( uint8_t );
     bool StopRF();
     void Start();
 
@@ -54,13 +53,13 @@ private slots:
 
 private:
 
+    QTimer watchDogOnRecieve;
+    QTimer watchDogOnPlace;
+    State state;
     RF24 radio;
     Descriptor descriptor;
     Buffer buffer;
     QByteArray data;
-    QTimer watchDogOnRecieve;
-    QTimer watchDogOnPlace;
-    State state;
     uint8_t placeNumber;
 
 

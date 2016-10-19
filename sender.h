@@ -29,8 +29,7 @@ private:
     qint8 sz;
     QByteArray sendStr;
     QByteArray buffer;
-    QNetworkAccessManager *man;
-    QNetworkReply *reply;
+    QNetworkAccessManager man;
     QNetworkRequest request;
 
 };

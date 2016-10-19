@@ -19,14 +19,13 @@ JPGcrop::JPGcrop( QObject *parent )
 
 bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
 
-    qDebug() << "Start make Mat ... ";
+    qDebug() << "Start crop picture ";;
 
         int w = 0;
-        //std::string nameStr = "/mnt/smb/pack_%1_%2_#%3" + std::to_string( array.size() ) + ".jpg";
 
         for( int q = 1; q < array.size() ; ++q ){
 
-                if( array[q-1] == 0xff && array[q] == 0xd9 )
+                if( array[q-1] == char( 0xff ) && array[q] == char( 0xd9 ) )
                 w = q;
         }
 
@@ -37,11 +36,16 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
 
         }
 
-        if( array[0] == 0xff && array[1] == 0xd8){
+        if( array[0] == char( 0xff ) && array[1] == char( 0xd8 )){
 
             cv::Mat img = cv::Mat( 1600, 896, CV_32SC4, array.data() );
-            cv::Mat matImg = cv::imdecode( img, CV_LOAD_IMAGE_ANYCOLOR );
-            //cv::imwrite(nameStr,matImg);
+            img = cv::imdecode( img, CV_LOAD_IMAGE_ANYCOLOR );
+
+            if( !img.data ){
+
+                qDebug() << "Error: JPEG is wrong";
+
+                } else {
 
                     for(uint8_t i = 1; i <= 3; ++i ){
 
@@ -49,16 +53,19 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
                                                 .arg( ( place - 0x30 ) + ( cam - 0x30 ) + i - 1 )
                                                 .arg( place ).arg( numPic ) ).toStdString();
 
-                            cv::imwrite( str, matImg( roi[i-1] ) );
+                            cv::imwrite( str, img( roi[i-1] ) );
                             ++numPic;
 
-                            emit EndOfCrop( matImg( roi[i-1] ), cam, i, place );
+                            emit EndOfCrop( img( roi[i-1] ), cam, i, place );
 
                         }
+                }
 
             array.clear();
             img.release();
-            matImg.release();
+            img.release();
+
+            qDebug() << "Stop crop picture";
 
             return true;
         }
