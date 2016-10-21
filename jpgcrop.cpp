@@ -25,7 +25,7 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
 
         for( int q = 1; q < array.size() ; ++q ){
 
-                if( array[q-1] == char( 0xff ) && array[q] == char( 0xd9 ) )
+                if( array[q-1] == (char) 0xff  && array[q] == (char) 0xd9 )
                 w = q;
         }
 
@@ -38,8 +38,10 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
 
         if( array[0] == char( 0xff ) && array[1] == char( 0xd8 )){
 
+                std::string str = QString("/mnt/smb/pack_#%1_place#%2_pic#%3.jpg").arg(array.size()).toStdString();
             cv::Mat img = cv::Mat( 1600, 896, CV_32SC4, array.data() );
             img = cv::imdecode( img, CV_LOAD_IMAGE_ANYCOLOR );
+            cv::imwrite(str,img);
 
             if( !img.data ){
 
@@ -53,10 +55,10 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
                                                 .arg( ( place - 0x30 ) + ( cam - 0x30 ) + i - 1 )
                                                 .arg( place ).arg( numPic ) ).toStdString();
 
-                            cv::imwrite( str, img( roi[i-1] ) );
+                            //cv::imwrite( str, img( roi[i-1] ) );
                             ++numPic;
 
-                            emit EndOfCrop( img( roi[i-1] ), cam, i, place );
+                            emit EndOfCrop( img( roi[i-1] ), cam, i, place, array.size());
 
                         }
                 }

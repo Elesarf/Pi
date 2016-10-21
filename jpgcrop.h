@@ -22,7 +22,7 @@ public:
 
 signals:
 
-    void EndOfCrop( const cv::Mat &, char, qint8, qint8 );
+    void EndOfCrop( const cv::Mat &, char, qint8, qint8, const int );
 
 public slots:
 

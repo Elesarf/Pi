@@ -45,6 +45,7 @@ void Protocol::ReadyRead(){
 
                 watchDogOnPlace.stop();
                 watchDogOnRecieve.stop();
+                watchDogOnRecieve.start(20000);
 
                 memset ( &buffer, 0, sizeof( Protocol::buffer ));
                 data.clear();
@@ -96,7 +97,7 @@ void Protocol::ReadyRead(){
 
                             qDebug() << "Recieve picture ok ";
 
-                            emit EndOfRecive( data, descriptor );
+                            emit EndOfRecive( data.size(), descriptor.numPlace, descriptor.numCam );
                             emit GoToCrop( data, descriptor.numCam, descriptor.numPlace );
 
                             state = S_INIT;
@@ -127,13 +128,13 @@ void Protocol::ReadyRead(){
 bool Protocol::InitRF(){
 
 
-        if(placeNumber < 102 && placeNumber >= 100 ){
-                placeNumber += 2;
-            }
+//        if(placeNumber < 102 && placeNumber >= 100 ){
+//                placeNumber += 2;
+//            }
 
-        else{
-                placeNumber = 100;
-            }
+//        else{
+                placeNumber= 102;
+//            }
 
         radio.setChannel( placeNumber );                     // Chanel #add
         radio.setPALevel( RF24_PA_MAX );                    // Power

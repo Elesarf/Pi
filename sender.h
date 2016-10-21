@@ -6,6 +6,7 @@
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QDebug>
+#include <QTimer>
 
 class Sender : public QObject
 {
@@ -22,15 +23,19 @@ signals:
 
 public slots:
 
-    bool SendPlease ( const qint8, const qint8, const qint8 );
+    bool SendPlease ( const qint8, const qint8, const qint8, int );
+    bool IGetImage( const int, const char, const char );
 
 private:
 
-    qint8 sz;
-    QByteArray sendStr;
-    QByteArray buffer;
-    QNetworkAccessManager man;
-    QNetworkRequest request;
+    QDateTime __datetime;
+    qint8 __sz;
+    QNetworkAccessManager __man;
+    QTimer __sendTimer;
+    int __timToTimer;
+    QByteArray __sendStr;
+    QByteArray __buffer;
+    QNetworkRequest __request;
 
 };
 

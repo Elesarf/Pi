@@ -14,11 +14,13 @@ LIBS += /home/elesar/opt/gcc-4.7-linaro-rpi-gnueabihf/arm-linux-gnueabihf/lib/li
 LIBS +=  /mnt/rasp-pi-rootfs/usr/local/lib/librf24.so
 LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_objdetect
 
-#LIBS += -lcrypto -lssl
-#OPENSSL_LIBS='-L/opt/ssl/lib -lssl -lcrypto'
-LIBS += -ldl -lcrypto -lssl
 
-target.path = /sbin
+#LIBS += /mnt/rasp-pi-rootfs/usr/lib/arm-linux-gnueabihf/libcrypto.a
+
+#LIBS += -ldl
+#-lcrypto -lssl
+
+target.path = /usr/bin
 INSTALLS += target
 TARGET = Protocol_b
 

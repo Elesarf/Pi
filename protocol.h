@@ -37,7 +37,7 @@ public:
 
 signals:
 
-    void EndOfRecive( const QByteArray &, const Descriptor & );
+    void EndOfRecive( const int, const char, const char );
     void EndReadPlace( const uint8_t);
     void GoToCrop( QByteArray, const char, const char );
 

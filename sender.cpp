@@ -1,63 +1,114 @@
 #include "sender.h"
-#include <signal.h>
 
 Sender::Sender(QObject *parent) :
     QObject(parent)
-  , man(this)
+  , __man( this )
+  , __sendTimer( this )
 
 {
-    sz = 0;
-    request.setUrl(( QUrl( QString( "https://kz0.vt-serv.com:500/?" ))));
-    request.setHeader(QNetworkRequest::ContentTypeHeader, QString("application/x-www-form-urlencoded"));
 
-    Sender::connect( &man, &QNetworkAccessManager::finished, [this](QNetworkReply *reply){
+
+    __datetime.addSecs( 3600*3 );
+    __sz = 0;
+    __timToTimer = 7900;
+    __request.setUrl(( QUrl( QString( "https://kz0.vt-serv.com:500/?" ))));
+    __request.setHeader(QNetworkRequest::ContentTypeHeader, QString("application/x-www-form-urlencoded"));
+    __sendTimer.setSingleShot( true );
+
+    Sender::connect( &__sendTimer, &QTimer::timeout, [this](){
+
+            qDebug() << "Send on timer";
+            Sender::SendPlease(55,7,7,7);
+
+        });
+
+    Sender::connect( &__man, &QNetworkAccessManager::finished, [this](QNetworkReply *reply){
 
                         reply->deleteLater();
 
                     });
 
-    Sender::connect( &man, &QNetworkAccessManager::sslErrors, [this](QNetworkReply *reply, const QList<QSslError> &errors ){
+    Sender::connect( &__man, &QNetworkAccessManager::sslErrors, [this](QNetworkReply *reply, const QList<QSslError> &errors ){
 
                          reply -> ignoreSslErrors( errors );
 
                      });
 
+    __sendTimer.start(__timToTimer);
+
 }
 
-bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c){
+bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c, int size){
 
-    if ( sz < 2 ){
+    __sendTimer.stop();
 
-            buffer.append( QString( "%1;%2;%3|" ).arg( a - 0x30 ).arg( b ).arg( c ));
-            ++sz;
-            qDebug() << QString( "%1;%2;%3|" ).arg( a - 0x30 ).arg( b ).arg( c );
+    QString magicString = QString( "%1;%2;%3;%4%5%6%7|" )
+            .arg( a - 0x30 ).arg( b ).arg( c )
+            .arg(__datetime.currentDateTime().toString( "yy" ))
+            .arg(__datetime.currentDateTime().toString( "MM" ))
+            .arg(__datetime.currentDateTime().toString( "dd" ))
+            .arg(__datetime.currentDateTime().toString( "HHmmss" ));
 
+    if ( !(( b == 7 ) && ( c == 7 ))){
+
+            if ( __sz < 11 ){
+
+                    __buffer.append( magicString );
+                    ++__sz;
+                    qDebug() <<  magicString;
+
+                } else {
+
+                    __buffer.append( magicString );
+                    qDebug() <<  magicString;
+
+                    __buffer.prepend( "key=pdz9uFCr&id=00006&brand={" );
+                    __buffer.chop( 1 );
+                    __buffer.append( "}" );
+                    __sendStr.append( __buffer );
+
+                    auto reply = __man.post( __request, __sendStr );
+                    Q_UNUSED( reply );
+
+                    qDebug() << "Send to server ";
+                    __sendStr.clear();
+                    __buffer.clear();
+                    __sz = 0;
+                    __sendTimer.start(__timToTimer);
+
+                    return true;
+                }
         } else {
 
-            buffer.append( QString( "%1;%2;%3|" ).arg( a - 0x30 ).arg( b ).arg( c ));
-            qDebug() << QString( "%1;%2;%3|" ).arg( a - 0x30 ).arg( b ).arg( c );
+            __buffer.append( magicString );
 
-            buffer.prepend( "key=pdz9uFCr&id=00006&brand={" );
-            buffer.chop( 1 );
-            buffer.append( "}" );
-            sendStr.append( buffer );
+            if ( __buffer.size() > 1023 ){
 
-            auto reply = man.post( request, sendStr );
-            Q_UNUSED( reply );
+                    __sendStr.clear();
+                    __buffer.clear();
+                    __sz = 0;
+                    __sendTimer.start(__timToTimer);
 
-            qDebug() << "Send to server ";
-            sendStr.clear();
-            buffer.clear();
-            sz = 0;
-
-            return true;
+                }
         }
 
+    __sendTimer.start(__timToTimer);
     return false;
 }
 
+bool Sender::IGetImage(const int size, const char place, const char cam){
 
+    __buffer.append(QString( "%1;%2;%3;%4%5%6%7|" )
+                    .arg( place - 0x30 )
+                    .arg( cam - 0x30 )
+                    .arg( size )
+                    .arg(__datetime.currentDateTime().toString( "yy" ))
+                    .arg(__datetime.currentDateTime().toString( "MM" ))
+                    .arg(__datetime.currentDateTime().toString( "dd" ))
+                    .arg(__datetime.currentDateTime().toString( "HHmmss" )));
 
+    return true;
+}
 
 
 
