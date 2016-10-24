@@ -11,6 +11,7 @@ Protocol::Protocol(QObject *parent)
     , watchDogOnPlace(this)
     , state(S_INIT)
     , radio(RPI_V2_GPIO_P1_22, RPI_V2_GPIO_P1_24, BCM2835_SPI_SPEED_8MHZ)
+
 {
 
     connect( &watchDogOnRecieve, &QTimer::timeout, [this](){
@@ -28,6 +29,7 @@ Protocol::Protocol(QObject *parent)
 
     watchDogOnPlace.setSingleShot(true);
     watchDogOnRecieve.setSingleShot(true);
+    __camwatcher = 0;
 
 }
 
@@ -45,7 +47,7 @@ void Protocol::ReadyRead(){
 
                 watchDogOnPlace.stop();
                 watchDogOnRecieve.stop();
-                watchDogOnRecieve.start(20000);
+                watchDogOnRecieve.start( 10000 );
 
                 memset ( &buffer, 0, sizeof( Protocol::buffer ));
                 data.clear();
@@ -100,13 +102,35 @@ void Protocol::ReadyRead(){
                             emit EndOfRecive( data.size(), descriptor.numPlace, descriptor.numCam );
                             emit GoToCrop( data, descriptor.numCam, descriptor.numPlace );
 
-                            state = S_INIT;
+                            memset( &buffer, 0, sizeof( Protocol::buffer ));
 
-                            if( descriptor.numCam == 0x32 ){
+                            __camwatcher += descriptor.numCam - 0x30;
 
-                                watchDogOnRecieve.start( 0 );
+                            if ( __camwatcher >= 3 ){
+
+                                    data.clear();
+                                    __camwatcher = 0;
+                                    state = S_INIT;
+
+                                    watchDogOnRecieve.stop();
+                                    watchDogOnRecieve.start( 0 );
+
+                                } else {
+
+                                    watchDogOnRecieve.stop();
+                                    watchDogOnRecieve.start( 6000 );
 
                                 }
+
+                            data.clear();
+                            state = S_INIT;
+
+//                            if( descriptor.numCam == 0x32 ){
+
+//                                    watchDogOnRecieve.stop();
+//                                    watchDogOnRecieve.start( 0 );
+
+//                                }
 
                             break;
                         }
@@ -128,13 +152,13 @@ void Protocol::ReadyRead(){
 bool Protocol::InitRF(){
 
 
-//        if(placeNumber < 102 && placeNumber >= 100 ){
-//                placeNumber += 2;
-//            }
+        if(placeNumber < 102 && placeNumber >= 100 ){
+                placeNumber += 2;
+            }
 
-//        else{
-                placeNumber= 102;
-//            }
+        else{
+                placeNumber= 100;
+            }
 
         radio.setChannel( placeNumber );                     // Chanel #add
         radio.setPALevel( RF24_PA_MAX );                    // Power
@@ -146,7 +170,7 @@ bool Protocol::InitRF(){
 
         qDebug() << QString( "Init RF on address #%1 ....Ok" ).arg( placeNumber );
 
-        watchDogOnRecieve.start( 8000 );
+        watchDogOnRecieve.start( 10000 );
         watchDogOnPlace.start( 0 );
 
         return true;
@@ -160,6 +184,7 @@ bool Protocol::StopRF(){
     delay(1000);
     radio.powerUp();
     delay(1000);
+
     return true;
 }
 

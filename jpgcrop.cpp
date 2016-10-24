@@ -19,29 +19,28 @@ JPGcrop::JPGcrop( QObject *parent )
 
 bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
 
-    qDebug() << "Start crop picture ";;
+    qDebug() << "Start crop picture ";
 
-        int w = 0;
+//        int w = 0;
 
-        for( int q = 1; q < array.size() ; ++q ){
+//        for( int q = 1; q < array.size() ; ++q ){
 
-                if( array[q-1] == (char) 0xff  && array[q] == (char) 0xd9 )
-                w = q;
-        }
+//                if( array[q-1] == (char) 0xff  && array[q] == (char) 0xd9 )
+//                w = q;
+//        }
 
-        if( w <= 0 ){
+//        if( w <= 0 ){
 
-            array[array.size() - 1] = 0xd9;
-            array[array.size() - 2] = 0xff;
+//            array[array.size() - 1] = 0xd9;
+//            array[array.size() - 2] = 0xff;
 
-        }
+//        }
 
-        if( array[0] == char( 0xff ) && array[1] == char( 0xd8 )){
+        if( ((array[0] == char( 0xff ) && array[1] == char( 0xd8 )) && ( array.size() < 75000 ))
+                && (( array[array.size() - 1] == char( 0xd9 )) && (array[array.size() - 2] == char( 0xff )))){
 
-                std::string str = QString("/mnt/smb/pack_#%1_place#%2_pic#%3.jpg").arg(array.size()).toStdString();
             cv::Mat img = cv::Mat( 1600, 896, CV_32SC4, array.data() );
-            img = cv::imdecode( img, CV_LOAD_IMAGE_ANYCOLOR );
-            cv::imwrite(str,img);
+            img = cv::imdecode( img, CV_LOAD_IMAGE_COLOR );
 
             if( !img.data ){
 
@@ -51,11 +50,11 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
 
                     for(uint8_t i = 1; i <= 3; ++i ){
 
-                            std::string str = ( QString("/mnt/smb/pack_#%1_place#%2_pic#%3.jpg" )
+                            std::string str = ( QString("/mnt/smb/pack_#%1_place#%2_pic#%3_size%4.jpg" )
                                                 .arg( ( place - 0x30 ) + ( cam - 0x30 ) + i - 1 )
-                                                .arg( place ).arg( numPic ) ).toStdString();
+                                                .arg( place ).arg( numPic ).arg( array.size() )).toStdString();
 
-                            //cv::imwrite( str, img( roi[i-1] ) );
+                            cv::imwrite( str, img( roi[i-1] ) );
                             ++numPic;
 
                             emit EndOfCrop( img( roi[i-1] ), cam, i, place, array.size());
@@ -64,7 +63,6 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
                 }
 
             array.clear();
-            img.release();
             img.release();
 
             qDebug() << "Stop crop picture";

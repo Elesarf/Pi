@@ -32,6 +32,7 @@ private slots:
 
 private:
 
+    QByteArray __matArray;
     cv::Rect roi[3];
     uint32_t numPic;
 

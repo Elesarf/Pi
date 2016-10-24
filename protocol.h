@@ -61,6 +61,7 @@ private:
     Buffer buffer;
     QByteArray data;
     uint8_t placeNumber;
+    qint8 __camwatcher;
 
 
 };
