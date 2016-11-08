@@ -102,35 +102,28 @@ void Protocol::ReadyRead(){
                             emit EndOfRecive( data.size(), descriptor.numPlace, descriptor.numCam );
                             emit GoToCrop( data, descriptor.numCam, descriptor.numPlace );
 
+
                             memset( &buffer, 0, sizeof( Protocol::buffer ));
 
                             __camwatcher += descriptor.numCam - 0x30;
 
-                            if ( __camwatcher >= 3 ){
+                            watchDogOnRecieve.stop();
+
+                            if (__camwatcher >= 5 ){
 
                                     data.clear();
                                     __camwatcher = 0;
                                     state = S_INIT;
-
-                                    watchDogOnRecieve.stop();
                                     watchDogOnRecieve.start( 0 );
 
                                 } else {
 
-                                    watchDogOnRecieve.stop();
                                     watchDogOnRecieve.start( 6000 );
 
                                 }
 
                             data.clear();
                             state = S_INIT;
-
-//                            if( descriptor.numCam == 0x32 ){
-
-//                                    watchDogOnRecieve.stop();
-//                                    watchDogOnRecieve.start( 0 );
-
-//                                }
 
                             break;
                         }
@@ -181,6 +174,10 @@ bool Protocol::StopRF(){
     radio.stopListening();
     radio.closeReadingPipe( 0 );
     radio.powerDown();
+
+    memset ( &buffer, 0, sizeof( Protocol::buffer ));
+    data.clear();
+
     delay(1000);
     radio.powerUp();
     delay(1000);

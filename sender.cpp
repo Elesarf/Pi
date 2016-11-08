@@ -18,7 +18,7 @@ Sender::Sender(QObject *parent) :
     Sender::connect( &__sendTimer, &QTimer::timeout, [this](){
 
             qDebug() << "Send on timer";
-            Sender::SendPlease(55,7,7,7);
+            Sender::SendPlease(48,77,77,77);
 
         });
 
@@ -51,7 +51,7 @@ bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c, int size){
 
     if ( !(( b == 7 ) && ( c == 7 ))){
 
-            if ( __sz < 11 ){
+            if ( __sz < 15 ){
 
                     __buffer.append( magicString );
                     ++__sz;
@@ -62,9 +62,8 @@ bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c, int size){
                     __buffer.append( magicString );
                     qDebug() <<  magicString;
 
-                    __buffer.prepend( "key=pdz9uFCr&id=00006&brand={" );
+                    __buffer.prepend( "key=pdz9uFCr&id=00006&brand=" );
                     __buffer.chop( 1 );
-                    __buffer.append( "}" );
                     __sendStr.append( __buffer );
 
                     auto reply = __man.post( __request, __sendStr );
@@ -99,7 +98,7 @@ bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c, int size){
 bool Sender::IGetImage(const int size, const char place, const char cam){
 
     __buffer.append(QString( "%1;%2;%3;%4%5%6%7|" )
-                    .arg( place - 0x30 )
+                    .arg( 0 )
                     .arg( cam - 0x30 )
                     .arg( size )
                     .arg(__datetime.currentDateTime().toString( "yy" ))

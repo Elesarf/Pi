@@ -26,6 +26,14 @@ public:
 
     explicit Finder(QObject *parent = 0);
 
+    struct FindsVect{
+
+        int numberOnList;
+        int numberCascade;
+        int sizeVect;
+
+    };
+
 signals:
 
     void FindEnd( const qint8, const qint8, const qint8, int );
@@ -39,7 +47,7 @@ private slots:
 
 private:
 
-   QFileInfoList list;
+   QFileInfoList __list;
 
 };
 
