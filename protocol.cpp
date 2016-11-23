@@ -114,11 +114,11 @@ void Protocol::ReadyRead(){
                                     data.clear();
                                     __camwatcher = 0;
                                     state = S_INIT;
-                                    watchDogOnRecieve.start( 0 );
+                                    watchDogOnRecieve.start( 1000 );
 
                                 } else {
 
-                                    watchDogOnRecieve.start( 6000 );
+                                    watchDogOnRecieve.start( 8000 );
 
                                 }
 

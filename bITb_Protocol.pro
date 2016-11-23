@@ -11,7 +11,7 @@ INCLUDEPATH += /mnt/rasp-pi-rootfs/usr/local/include/RF24/
 INCLUDEPATH += /mnt/rasp-pi-rootfs/usr/include/
 
 LIBS += /home/elesar/opt/gcc-4.7-linaro-rpi-gnueabihf/arm-linux-gnueabihf/lib/libstdc++.so.6.0.20 #if soft be have bugs, then build GCC v4.9!!!!!!!
-LIBS +=  /mnt/rasp-pi-rootfs/usr/local/lib/librf24.so
+LIBS +=  /mnt/rasp-pi-rootfs/usr/local/lib/librf24.so.1.1.7
 LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_objdetect
 
 
@@ -22,7 +22,7 @@ LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_objdetect
 
 target.path = /usr/bin
 INSTALLS += target
-TARGET = Protocol_b
+TARGET = protocol_b
 
 TEMPLATE = app
 

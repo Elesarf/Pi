@@ -23,7 +23,7 @@ signals:
 
 public slots:
 
-    bool SendPlease ( const qint8, const qint8, const qint8, int );
+    bool SendPlease ( const qint8, const qint8, const qint8, int, qint8 );
     bool IGetImage( const int, const char, const char );
 
 private:

@@ -20,6 +20,23 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
 {
     qDebug() << "FindObject... ";
 
+    cv::Mat fr;
+
+    std::string nameOnWindow;
+    QString bufString = NULL;
+
+    Finder::FindsVect findsVector[ __list.size() ];
+    QString strToConvert;
+
+    cv::vector<cv::Rect> finds;
+
+    qint8 indexOfright = 0;
+    qint8 tempFinds = 0;
+    qint8 numpack;
+
+    cam -= 0x30;
+    finds.clear();
+    frame.copyTo( fr );
 
     cv::CascadeClassifier faceClassificator[__list.size()];
 
@@ -35,10 +52,7 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
         }
     }
 
-    qint8 numpack;
-
-    cam -= 0x30;
-    switch ( cam ) {
+    switch ( cam ) {                                                                    // magick for name cam
     case 1:
             numpack = pic * cam;
         break;
@@ -58,28 +72,17 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
         break;
         }
 
-    std::string nameOnWindow;
-    QString bufString = NULL;
+    if ( !(( numpack == 2 ) || ( numpack == 5 ) || ( numpack == 8 )|| ( numpack == 11 ))){   //+ brightness
 
-    Finder::FindsVect findsVector[ __list.size() ];
-    QString strToConvert;
+            frame *= 1.01;
 
-    cv::vector<cv::Rect> finds;
-    //cv::vector<cv::Rect> tempFinds;
-
-    qint8 indexOfright = 0;
-    qint8 tempFinds = 0;
-
-    //tempFinds.clear();
-    finds.clear();
-
-    cv::Mat fr =  frame;
+        }
 
     //-- Detect pacs
     for ( int indexOfcascade = 0; indexOfcascade < __list.size(); ++indexOfcascade ){
 
-        faceClassificator[indexOfcascade].detectMultiScale( frame, finds, 1.025, 1,
-                                0|CV_HAAR_DO_CANNY_PRUNING, cv::Size( 100, 40 ), cv::Size( 500, 200 ) );
+        faceClassificator[indexOfcascade].detectMultiScale( frame, finds, 1.02, 1,
+                                0|CV_HAAR_DO_CANNY_PRUNING, cv::Size( 100, 40 ), cv::Size( 540, 216 ) );
 
         if ( finds.size() != 0 ){
 
@@ -95,9 +98,8 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
                         QString bufString=__list[indexOfcascade].fileName();
                         bufString.chop( 4 );
                         std::string nameOnWindow = bufString.toStdString();
-                        cv::putText( fr, nameOnWindow, center, cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255, 255 ), 4, 8);
+                        cv::putText( fr, nameOnWindow, center, cv::FONT_HERSHEY_PLAIN, 2.5,  cv::Scalar( 0, 0, 255, 255 ), 4, 8);
                         nameOnWindow = ( QString("/mnt/smb/pack_#%1.jpg" ).arg( numpack )).toStdString();
-                        cv::imwrite( nameOnWindow, fr );
 
                     }
 
@@ -105,7 +107,6 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
 
                 std::string nameOnWindow = bufString.toStdString();
                 nameOnWindow = ( QString("/mnt/smb/pack_#%1.jpg" ).arg( numpack )).toStdString();
-                cv::imwrite( nameOnWindow, fr );
 
             }
 
@@ -142,11 +143,16 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
             bufString.chop( 4 );
             nameOnWindow = bufString.toStdString();
 
+            cv::putText( fr, nameOnWindow, cv::Point( 0, 30 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 250, 0), 4, 8);
+            cv::imwrite(( QString("/mnt/smb/pack_#%1.jpg" ).arg( numpack )).toStdString(), fr );
+            //cv::imwrite(( QString("/mnt/smb/pack_#%1_%2.jpg" ).arg( numpack ).arg( size )).toStdString(), frame );
+
             qDebug() << "found " << QString::fromStdString( nameOnWindow ) << QString( " on pack_#%1 #%2 matches "
                                                                     ).arg( numpack ).arg( tempFinds ) ;
 
             bufString.chop( bufString.length() - 1 );
-            emit FindEnd( place, numpack, bufString.toInt() , size );
+            emit FindEndMaySend( place, numpack, bufString.toInt() , size, tempFinds );
+            fr.release();
 
     return true;
 }
@@ -170,6 +176,7 @@ QFileInfoList Finder::LoadCascades(){
 
         }
 
+        qDebug() << "Loaded " << __list.size() << " cascades";
 
     for(int i = 0; i < __list.size(); ++i ){
 

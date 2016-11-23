@@ -75,6 +75,3 @@ bool JPGcrop::MakeMat( QByteArray array, char cam, char place ){
 
 
 
-
-
-

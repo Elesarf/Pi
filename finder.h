@@ -36,7 +36,8 @@ public:
 
 signals:
 
-    void FindEnd( const qint8, const qint8, const qint8, int );
+    void FindEndMaySend( const qint8, const qint8, const qint8, int, qint8 );
+    void FindEnd();
 
 public slots:
 

@@ -18,7 +18,7 @@ Sender::Sender(QObject *parent) :
     Sender::connect( &__sendTimer, &QTimer::timeout, [this](){
 
             qDebug() << "Send on timer";
-            Sender::SendPlease(48,77,77,77);
+            Sender::SendPlease(48,77,77,77, 48);
 
         });
 
@@ -38,16 +38,17 @@ Sender::Sender(QObject *parent) :
 
 }
 
-bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c, int size){
+bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c, int size, qint8 matches){
 
     __sendTimer.stop();
 
-    QString magicString = QString( "%1;%2;%3;%4%5%6%7|" )
+    QString magicString = QString( "%1;%2;%3;%4%5%6%7;%8|" )
             .arg( a - 0x30 ).arg( b ).arg( c )
             .arg(__datetime.currentDateTime().toString( "yy" ))
             .arg(__datetime.currentDateTime().toString( "MM" ))
             .arg(__datetime.currentDateTime().toString( "dd" ))
-            .arg(__datetime.currentDateTime().toString( "HHmmss" ));
+            .arg(__datetime.currentDateTime().toString( "HHmmss" ))
+            .arg( matches );
 
     if ( !(( b == 7 ) && ( c == 7 ))){
 

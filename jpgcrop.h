@@ -27,7 +27,6 @@ signals:
 public slots:
 
     bool MakeMat( QByteArray, char, char);
-
 private slots:
 
 private:

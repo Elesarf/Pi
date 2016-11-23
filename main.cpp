@@ -35,13 +35,14 @@ int main(int argc, char *argv[])
     Finder   fd;
     Sender   sd;
 
+
     QThread  thFS;
     QThread  thRf;
     QThread  thCr;
     QObject  thGroup;
 
-    QObject::connect( &fd, SIGNAL( FindEnd( const qint8, const qint8, const qint8, const int)),
-                      &sd, SLOT( SendPlease( qint8, qint8, qint8, int))
+    QObject::connect( &fd, SIGNAL( FindEndMaySend( const qint8, const qint8, const qint8, const int, qint8)),
+                      &sd, SLOT( SendPlease( qint8, qint8, qint8, int, qint8 ))
                       );
 
     QObject::connect( &thRf, SIGNAL( started() ),
