@@ -26,6 +26,8 @@ public:
 
     explicit Finder(QObject *parent = 0);
 
+    qint8 Color_conv( cv::Mat );
+
     struct FindsVect{
 
         int numberOnList;

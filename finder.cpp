@@ -53,23 +53,23 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
     }
 
     switch ( cam ) {                                                                    // magick for name cam
-    case 1:
-            numpack = pic * cam;
-        break;
+            case 1:
+                    numpack = pic * cam;
+                break;
 
-    case 2:
-            numpack = pic + cam + 1;
-        break;
+            case 2:
+                    numpack = pic + cam + 1;
+                break;
 
-    case 3:
-            numpack = pic + cam + 3;
-        break;
-    case 4:
-            numpack = pic + cam + 5;
-        break;
+            case 3:
+                    numpack = pic + cam + 3;
+                break;
+            case 4:
+                    numpack = pic + cam + 5;
+                break;
 
-    default:
-        break;
+            default:
+                break;
         }
 
     if ( !(( numpack == 2 ) || ( numpack == 5 ) || ( numpack == 8 )|| ( numpack == 11 ))){   //+ brightness
@@ -92,13 +92,13 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
                         cv::Point a( center.x + 75, center.y + 75 );
                         cv::Point b( center.x - 75, center.y - 75 );
 
-                        cv::rectangle( fr, a, b, cv::Scalar( 255, 0, 255 ), 3, 8, 0);
+                        //cv::rectangle( fr, a, b, cv::Scalar( 255, 0, 255 ), 3, 8, 0);
 
                         center.x -= 90;
                         QString bufString=__list[indexOfcascade].fileName();
                         bufString.chop( 4 );
                         std::string nameOnWindow = bufString.toStdString();
-                        cv::putText( fr, nameOnWindow, center, cv::FONT_HERSHEY_PLAIN, 2.5,  cv::Scalar( 0, 0, 255, 255 ), 4, 8);
+                        //cv::putText( fr, nameOnWindow, center, cv::FONT_HERSHEY_PLAIN, 2.5,  cv::Scalar( 0, 0, 255, 255 ), 4, 8);
                         nameOnWindow = ( QString("/mnt/smb/pack_#%1.jpg" ).arg( numpack )).toStdString();
 
                     }
@@ -139,8 +139,44 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
                 }
         }
 
-            bufString = __list[indexOfright].fileName();
-            bufString.chop( 4 );
+
+    int colorIndex = Color_conv( fr );
+
+    if( colorIndex != 0 ){
+
+            switch ( colorIndex ) {
+
+                    case 2 :
+                indexOfright = 15; //Glamour
+                tempFinds = 6;
+                break;
+
+                    case 4 :
+                indexOfright = 3; //Winstone red
+                tempFinds = 6;
+                break;
+
+                    case 6:
+                indexOfright = 16; //Glamour Safari
+                tempFinds = 6;
+
+                    default:
+                        break;
+                }
+
+        }
+
+        if( indexOfright < __list.size() ){
+
+                bufString = __list[ indexOfright ].fileName();
+                bufString.chop( 4 );
+
+            } else {
+
+                bufString = indexOfright;
+
+            }
+
             nameOnWindow = bufString.toStdString();
 
             cv::putText( fr, nameOnWindow, cv::Point( 0, 30 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 250, 0), 4, 8);
@@ -150,11 +186,82 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
             qDebug() << "found " << QString::fromStdString( nameOnWindow ) << QString( " on pack_#%1 #%2 matches "
                                                                     ).arg( numpack ).arg( tempFinds ) ;
 
+
             bufString.chop( bufString.length() - 1 );
+
+
             emit FindEndMaySend( place, numpack, bufString.toInt() , size, tempFinds );
             fr.release();
 
     return true;
+}
+
+qint8 Finder::Color_conv( cv::Mat frame ){
+
+    cv::Mat HSV, threshold, blurred;
+
+    cv::GaussianBlur( frame, frame, cv::Size( 3, 3 ), 4, 4);
+
+    cv::cvtColor( frame, HSV, CV_BGR2HSV );
+
+
+    cv::medianBlur(HSV, blurred, 21);
+
+    cv::inRange( HSV, cv::Scalar( 24, 62, 68 ), cv::Scalar( 57, 255, 249 ), threshold);
+    for(int y = 0; y < threshold.rows; y++){
+        for(int x = 0; x < threshold.cols; x++){
+            int value = threshold.at<uchar>(y, x);
+            if(value == 255){
+                cv::Rect rect;
+                int count = cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
+                if(rect.width >= 120 && rect.width <= 700
+                    && rect.height >= 120 && rect.height <= 700){
+                    cv::rectangle(frame, rect, cv::Scalar(255, 0, 255, 4));
+                    //qDebug() << "Found Yellow pack";
+                    return 2; //Glamour
+
+                }
+            }
+        }
+    }
+
+    cv::inRange( HSV, cv::Scalar( 144, 52, 40 ), cv::Scalar( 195, 255, 255 ), threshold);
+    for(int y = 0; y < threshold.rows; y++){
+        for(int x = 0; x < threshold.cols; x++){
+            int value = threshold.at<uchar>(y, x);
+            if(value == 255){
+                cv::Rect rect;
+                int count = cv::floodFill( threshold, cv::Point(x, y), cv::Scalar(200), &rect);
+                if( rect.width >= 125 && rect.width <= 700
+                    && rect.height >= 125 && rect.height <= 700){
+                    cv::rectangle(frame, rect, cv::Scalar(255, 0, 255, 4));
+                    //qDebug() << "Found Red pack";
+                    return 4; // Winstone red
+
+                }
+            }
+        }
+    }
+
+    cv::inRange( HSV, cv::Scalar( 16, 79, 68 ), cv::Scalar( 29, 255, 200 ), threshold);
+    for(int y = 0; y < threshold.rows; y++){
+        for(int x = 0; x < threshold.cols; x++){
+            int value = threshold.at<uchar>(y, x);
+            if(value == 255){
+                cv::Rect rect;
+                int count = cv::floodFill( threshold, cv::Point(x, y), cv::Scalar(200), &rect);
+                if( rect.width >= 125 && rect.width <= 700
+                    && rect.height >= 125 && rect.height <= 700){
+                    cv::rectangle(frame, rect, cv::Scalar(255, 0, 255, 4));
+                    //qDebug() << "Found Red pack";
+                    return 6; // Glamour Safari
+
+                }
+            }
+        }
+    }
+
+    return 0;
 }
 
 QFileInfoList Finder::LoadCascades(){
@@ -186,11 +293,6 @@ QFileInfoList Finder::LoadCascades(){
 
     return __list;
 }
-
-
-
-
-
 
 
 
