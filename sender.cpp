@@ -7,10 +7,10 @@ Sender::Sender(QObject *parent) :
 
 {
 
-
     __datetime.addSecs( 3600*3 );
     __sz = 0;
     __timToTimer = 7900;
+    __FillDispenser();
     __request.setUrl(( QUrl( QString( "https://kz0.vt-serv.com:500/?" ))));
     __request.setHeader(QNetworkRequest::ContentTypeHeader, QString("application/x-www-form-urlencoded"));
     __sendTimer.setSingleShot( true );
@@ -18,7 +18,7 @@ Sender::Sender(QObject *parent) :
     Sender::connect( &__sendTimer, &QTimer::timeout, [this](){
 
             qDebug() << "Send on timer";
-            Sender::SendPlease(48,77,77,77, 48);
+            Sender::IGetImage( 0, 48, 48 );
 
         });
 
@@ -38,23 +38,73 @@ Sender::Sender(QObject *parent) :
 
 }
 
-bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c, int size, qint8 matches){
+bool Sender::SendPlease( const qint8 place, const qint8 pack, const qint8 find, int size, qint8 matches ){
 
     __sendTimer.stop();
 
-    QString magicString = QString( "%1;%2;%3;%4%5%6%7;%8|" )
-            .arg( a - 0x30 ).arg( b ).arg( c )
+    __dispenser[place - 0x30][pack].place = place - 0x30;
+    __dispenser[place - 0x30][pack].pack = pack;
+//    __dispenser[place - 0x30][pack].find = find;
+//    __dispenser[place - 0x30][pack].matches = matches;
+    __dispenser[place - 0x30][pack].timestamp = QString( "%1%2%3%4" )
             .arg(__datetime.currentDateTime().toString( "yy" ))
             .arg(__datetime.currentDateTime().toString( "MM" ))
             .arg(__datetime.currentDateTime().toString( "dd" ))
-            .arg(__datetime.currentDateTime().toString( "HHmmss" ))
-            .arg( matches );
+            .arg(__datetime.currentDateTime().toString( "HHmmss" ));
 
-    if ( !(( b == 7 ) && ( c == 7 ))){
+    if(( __dispenser[place - 0x30][pack].find == find ) || ( __dispenser[place - 0x30][pack].find == -1 )){
 
-            if ( __sz < 15 ){
+            __dispenser[place - 0x30][pack].matches = ( __dispenser[place - 0x30][pack].matches + matches )* 0.8 + 0.5 ;
+            __dispenser[place - 0x30][pack].find = find ;
 
-                    __buffer.append( magicString );
+        } else if( !( __dispenser[place - 0x30][pack].find == find )){
+
+            if( __dispenser[place - 0x30][pack].matches >= matches ) {
+
+                        __dispenser[place - 0x30][pack].matches = __dispenser[place - 0x30][pack].matches - matches;
+
+                    } else {
+
+                        __dispenser[place - 0x30][pack].find = find ;
+                        __dispenser[place - 0x30][pack].matches = matches;
+
+                    }
+        }
+
+
+    QString magicString;
+
+    for ( qint8 packs = 1; packs < 13; ++ packs){
+
+            if( __dispenser[1][packs].matches > 7 ){
+
+                    __dispenser[1][packs].matches = 7;
+
+                }
+
+            magicString.append( QString( "%1;%2;%3;%4;%5|" )
+
+                    .arg( __dispenser[1][packs].place )
+                    .arg( packs )
+                    .arg( __dispenser[1][packs].find )
+                    .arg( __dispenser[1][packs].timestamp )
+                    .arg( __dispenser[1][packs].matches ));
+
+        }
+
+
+
+
+//    QString magicString = QString( "%1;%2;%3;%4%5%6%7;%8|" )
+//            .arg( place - 0x30 ).arg( pack ).arg( find )
+//            .arg(__datetime.currentDateTime().toString( "yy" ))
+//            .arg(__datetime.currentDateTime().toString( "MM" ))
+//            .arg(__datetime.currentDateTime().toString( "dd" ))
+//            .arg(__datetime.currentDateTime().toString( "HHmmss" ))
+//            .arg( matches );
+
+            if ( __sz < 7 ){
+
                     ++__sz;
                     qDebug() <<  magicString;
 
@@ -78,19 +128,6 @@ bool Sender::SendPlease(const qint8 a, const qint8 b, const qint8 c, int size, q
 
                     return true;
                 }
-        } else {
-
-            __buffer.append( magicString );
-
-            if ( __buffer.size() > 1023 ){
-
-                    __sendStr.clear();
-                    __buffer.clear();
-                    __sz = 0;
-                    __sendTimer.start(__timToTimer);
-
-                }
-        }
 
     __sendTimer.start(__timToTimer);
     return false;
@@ -109,6 +146,45 @@ bool Sender::IGetImage(const int size, const char place, const char cam){
 
     return true;
 }
+
+void Sender::__FillDispenser(){
+
+    for( qint8 places = 0; places < 13; ++places ){
+            for( qint8 packs = 0; packs < 13; ++packs){
+
+                    __dispenser[places][packs].place        = 0;
+                    __dispenser[places][packs].pack         = 0;
+                    __dispenser[places][packs].find         = -1;
+                    __dispenser[places][packs].matches      = -1;
+                    __dispenser[places][packs].timestamp.null  ;
+                }
+        }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

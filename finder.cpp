@@ -78,71 +78,71 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
 
         }
 
-    //-- Detect pacs
-    for ( int indexOfcascade = 0; indexOfcascade < __list.size(); ++indexOfcascade ){
-
-        faceClassificator[indexOfcascade].detectMultiScale( frame, finds, 1.02, 1,
-                                0|CV_HAAR_DO_CANNY_PRUNING, cv::Size( 100, 40 ), cv::Size( 540, 216 ) );
-
-        if ( finds.size() != 0 ){
-
-                for( size_t i = 0; i < finds.size(); i++ ){
-
-                        cv::Point center( finds[i].x + finds[i].width*0.5, finds[i].y + finds[i].height*0.5 );
-                        cv::Point a( center.x + 75, center.y + 75 );
-                        cv::Point b( center.x - 75, center.y - 75 );
-
-                        //cv::rectangle( fr, a, b, cv::Scalar( 255, 0, 255 ), 3, 8, 0);
-
-                        center.x -= 90;
-                        QString bufString=__list[indexOfcascade].fileName();
-                        bufString.chop( 4 );
-                        std::string nameOnWindow = bufString.toStdString();
-                        //cv::putText( fr, nameOnWindow, center, cv::FONT_HERSHEY_PLAIN, 2.5,  cv::Scalar( 0, 0, 255, 255 ), 4, 8);
-                        nameOnWindow = ( QString("/mnt/smb/pack_#%1.jpg" ).arg( numpack )).toStdString();
-
-                    }
-
-            } else {
-
-                std::string nameOnWindow = bufString.toStdString();
-                nameOnWindow = ( QString("/mnt/smb/pack_#%1.jpg" ).arg( numpack )).toStdString();
-
-            }
-
-        strToConvert = __list[ indexOfcascade ].fileName();
-        strToConvert.chop( strToConvert.length() - 1);
-        findsVector[ indexOfcascade ].numberCascade = indexOfcascade;
-        findsVector[ indexOfcascade ].numberOnList = strToConvert.toInt();
-        findsVector[ indexOfcascade ].sizeVect = finds.size();
-
-    }
-
-
-    for( qint8 i = 0; i < __list.size(); ++i ){
-            for( qint8 q = i; q < __list.size(); ++q ){
-
-                    if (( q != i ) && (findsVector[i].numberOnList == findsVector[q].numberOnList) ){
-                        findsVector[i].sizeVect += findsVector[q].sizeVect;
-                        findsVector[q].sizeVect =0;
-                        }
-                }
-        }
-
-    for( qint8 i = 0; i < __list.size(); ++i ){
-
-            if (( findsVector[i].sizeVect >= tempFinds ) && ( findsVector[i].sizeVect != 0 )){
-
-                    tempFinds = findsVector[i].sizeVect;
-                    indexOfright = findsVector[i].numberCascade;
-
-                }
-        }
-
-
     int colorIndex = Color_conv( fr );
 
-    if( colorIndex != 0 ){
+    if( colorIndex == 0 ){
+
+            //-- Detect pacs
+            for ( int indexOfcascade = 0; indexOfcascade < __list.size(); ++indexOfcascade ){
+
+                    faceClassificator[indexOfcascade].detectMultiScale( frame, finds, 1.02, 1,
+                                                                        0|CV_HAAR_DO_CANNY_PRUNING, cv::Size( 100, 40 ), cv::Size( 540, 216 ) );
+
+                    if ( finds.size() != 0 ){
+
+                            for( size_t i = 0; i < finds.size(); i++ ){
+
+                                    cv::Point center( finds[i].x + finds[i].width*0.5, finds[i].y + finds[i].height*0.5 );
+                                    cv::Point a( center.x + 75, center.y + 75 );
+                                    cv::Point b( center.x - 75, center.y - 75 );
+
+                                    cv::rectangle( fr, a, b, cv::Scalar( 255, 0, 255 ), 3, 8, 0);
+
+                                    center.x -= 90;
+                                    QString bufString=__list[indexOfcascade].fileName();
+                                    bufString.chop( 4 );
+                                    std::string nameOnWindow = bufString.toStdString();
+                                    cv::putText( fr, nameOnWindow, center, cv::FONT_HERSHEY_PLAIN, 2.5,  cv::Scalar( 0, 0, 255, 255 ), 4, 8);
+                                    nameOnWindow = ( QString("/mnt/smb/pack_#%1.jpg" ).arg( numpack )).toStdString();
+
+                                }
+
+                        } else {
+
+                            std::string nameOnWindow = bufString.toStdString();
+                            nameOnWindow = ( QString("/mnt/smb/pack_#%1.jpg" ).arg( numpack )).toStdString();
+
+                        }
+
+                    strToConvert = __list[ indexOfcascade ].fileName();
+                    strToConvert.chop( strToConvert.length() - 1);
+                    findsVector[ indexOfcascade ].numberCascade = indexOfcascade;
+                    findsVector[ indexOfcascade ].numberOnList = strToConvert.toInt();
+                    findsVector[ indexOfcascade ].sizeVect = finds.size();
+
+                }
+
+
+            for( qint8 i = 0; i < __list.size(); ++i ){
+                    for( qint8 q = i; q < __list.size(); ++q ){
+
+                            if (( q != i ) && (findsVector[i].numberOnList == findsVector[q].numberOnList) ){
+                                    findsVector[i].sizeVect += findsVector[q].sizeVect;
+                                    findsVector[q].sizeVect =0;
+                                }
+                        }
+                }
+
+            for( qint8 i = 0; i < __list.size(); ++i ){
+
+                    if (( findsVector[i].sizeVect >= tempFinds ) && ( findsVector[i].sizeVect != 0 )){
+
+                            tempFinds = findsVector[i].sizeVect;
+                            indexOfright = findsVector[i].numberCascade;
+
+                        }
+                }
+        } else {
 
             switch ( colorIndex ) {
 
@@ -158,6 +158,10 @@ bool Finder::FindObject(const cv::Mat &frame, char cam, qint8 pic, qint8 place, 
 
                     case 6:
                 indexOfright = 16; //Glamour Safari
+                tempFinds = 6;
+
+                    case 8:
+                indexOfright = 17; //LD
                 tempFinds = 6;
 
                     default:
@@ -255,6 +259,24 @@ qint8 Finder::Color_conv( cv::Mat frame ){
                     cv::rectangle(frame, rect, cv::Scalar(255, 0, 255, 4));
                     //qDebug() << "Found Red pack";
                     return 6; // Glamour Safari
+
+                }
+            }
+        }
+    }
+
+    cv::inRange( HSV, cv::Scalar( 116, 80, 50 ), cv::Scalar( 151, 137, 219 ), threshold);
+    for(int y = 0; y < threshold.rows; y++){
+        for(int x = 0; x < threshold.cols; x++){
+            int value = threshold.at<uchar>(y, x);
+            if(value == 255){
+                cv::Rect rect;
+                int count = cv::floodFill( threshold, cv::Point(x, y), cv::Scalar(200), &rect);
+                if( rect.width >= 150 && rect.width <= 700
+                    && rect.height >= 150 && rect.height <= 700){
+                    cv::rectangle(frame, rect, cv::Scalar(255, 0, 255, 4));
+                    //qDebug() << "Found Red pack";
+                    return 8; // LD?
 
                 }
             }

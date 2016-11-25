@@ -17,6 +17,16 @@ public:
 
     explicit Sender( QObject *parent = 0 );
 
+    struct Dispenser {
+
+        qint8 place;
+        qint8 pack;
+        qint8 find;
+        QString timestamp;
+        qint8 matches;
+
+    };
+
 signals:
 
     void SendEnd( QByteArray & );
@@ -28,8 +38,11 @@ public slots:
 
 private:
 
+    void __FillDispenser();
+
     QDateTime __datetime;
     qint8 __sz;
+    Dispenser __dispenser[13][13];
     QNetworkAccessManager __man;
     QTimer __sendTimer;
     int __timToTimer;
