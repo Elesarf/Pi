@@ -18,7 +18,7 @@ Q_DECLARE_METATYPE( std::uint8_t )
 
 QT_USE_NAMESPACE
 
-#include <dlfcn.h>
+//#include <dlfcn.h> // it just be here
 
 int main(int argc, char *argv[])
 {
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
                       &fd, SLOT ( FindObject( cv::Mat, char, qint8, qint8, int ))
                     );
 
-    QObject::connect( &pr, SIGNAL(EndOfRecive( int, char, char )),
+    QObject::connect( &pr, SIGNAL( EndOfRecive( int, char, char )),
                       &sd, SLOT( IGetImage( int, char, char ))
                       );
 

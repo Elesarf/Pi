@@ -71,7 +71,9 @@ void Protocol::ReadyRead(){
             }
         }
 
-        case S_READ_DATA :{
+			break;
+
+		case S_READ_DATA :{
 
             radio.read(((char *) &buffer), 32);
 
