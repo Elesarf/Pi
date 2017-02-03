@@ -6,34 +6,27 @@
 #include <QObject>
 
 #include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 #include "protocol.h"
 
-class JPGcrop : public QObject
-{
-        Q_OBJECT
-public:
+class JPGcrop : public QObject {
+  Q_OBJECT
+ public:
+  explicit JPGcrop(QObject* parent = 0);
 
-    explicit JPGcrop( QObject *parent = 0 );
+ public:
+ signals:
 
-public:
+  void EndOfCrop(const cv::Mat&, char, qint8, qint8, const int);
 
-signals:
+ public slots:
 
-    void EndOfCrop( const cv::Mat &, char, qint8, qint8, const int );
+  bool MakeMat(QByteArray, char, char);
+ private slots:
 
-public slots:
-
-    bool MakeMat( QByteArray, char, char);
-private slots:
-
-private:
-
-    QByteArray __matArray;
-    cv::Rect __roi[3];
-
+ private:
+  QByteArray __matArray;
+  cv::Rect __roi[3];
 };
 
-#endif // JPGCROP_H
+#endif  // JPGCROP_H

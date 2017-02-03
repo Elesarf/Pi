@@ -7,7 +7,6 @@
 #include <QDebug>
 #include <QCoreApplication>
 #include <QString>
-#include <QFile>
 #include <QThread>
 
 Q_DECLARE_METATYPE( cv::Mat )
@@ -18,7 +17,7 @@ Q_DECLARE_METATYPE( std::uint8_t )
 
 QT_USE_NAMESPACE
 
-//#include <dlfcn.h> // it just be here
+#include <dlfcn.h> // it just be here
 
 int main(int argc, char *argv[])
 {
@@ -41,8 +40,8 @@ int main(int argc, char *argv[])
     QThread  thCr;
     QObject  thGroup;
 
-    QObject::connect( &fd, SIGNAL( FindEndMaySend( const qint8, const qint8, const qint8, const int, qint8)),
-                      &sd, SLOT( SendPlease( qint8, qint8, qint8, int, qint8 ))
+    QObject::connect( &fd, SIGNAL( FindEndMaySend( const qint8, const qint8, const qint32, const int, qint8)),
+                      &sd, SLOT( SendPlease( qint8, qint8, qint32, int, qint8 ))
                       );
 
     QObject::connect( &thRf, SIGNAL( started() ),
@@ -72,7 +71,7 @@ int main(int argc, char *argv[])
     thCr.start();
     thFS.start();
 
-    fd.LoadCascades();
+    fd.LoadBase();
 
     return a.exec();
 }

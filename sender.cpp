@@ -1,5 +1,8 @@
 #include "sender.h"
 
+#include <QNetworkReply>
+#include <QDebug>
+
 Sender::Sender(QObject *parent) :
     QObject(parent)
   , __man( this )
@@ -7,7 +10,7 @@ Sender::Sender(QObject *parent) :
 
 {
 
-    __datetime.addSecs( 3600*3 ); // local time
+    __datetime = __datetime.addSecs( 3600*3 ); // local time
     __sz = 0;
     __timToTimer = 7900;
     __FillDispenser();
@@ -41,7 +44,8 @@ Sender::Sender(QObject *parent) :
 
 }
 
-bool Sender::SendPlease( const qint8 place, const qint8 pack, const qint8 find, int size, qint8 matches ){
+bool Sender::SendPlease( const qint8 place, const qint8 pack, const qint32 find, int size, qint8 matches ){
+    Q_UNUSED (size);
 
     __sendTimer.stop();
 
@@ -51,7 +55,7 @@ bool Sender::SendPlease( const qint8 place, const qint8 pack, const qint8 find, 
 
     if(( __dispenser[place - 0x30][pack].find == find ) || ( __dispenser[place - 0x30][pack].find == -1 )){
 
-            __dispenser[place - 0x30][pack].matches = ( __dispenser[place - 0x30][pack].matches + matches )* 0.8 + 1.5 ;
+            __dispenser[place - 0x30][pack].matches = __dispenser[place - 0x30][pack].matches + matches;
             __dispenser[place - 0x30][pack].find = find ;
 
         } else if( !( __dispenser[place - 0x30][pack].find == find )){
@@ -131,6 +135,7 @@ bool Sender::SendPlease( const qint8 place, const qint8 pack, const qint8 find, 
 }
 
 bool Sender::IGetImage(const int size, const char place, const char cam){
+    Q_UNUSED ( place );
 
     __buffer.append(QString( "%1;%2;%3;%4|" )
                     .arg( 0 )

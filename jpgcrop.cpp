@@ -2,8 +2,8 @@
 
 #include <QDebug>
 
-#include <stdio.h>
-#include <cstdlib>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 JPGcrop::JPGcrop( QObject *parent )
     :QObject( parent )

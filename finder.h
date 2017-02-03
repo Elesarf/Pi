@@ -5,53 +5,45 @@
 
 #include <QObject>
 
-#include <iostream>
-#include <QDir>
-#include <QTextStream>
-#include <stdio.h>
-#include <string>
-
 #include "opencv2/core/core.hpp"
-#include "opencv2/objdetect/objdetect.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 
+class Finder : public QObject {
+  Q_OBJECT
 
+ public:
+  explicit Finder(QObject* parent = 0);
 
-class Finder: public QObject
-{
-        Q_OBJECT
+  qint8 Color_conv(cv::Mat);
 
-public:
+  quint64 GetHash(cv::Mat);
+  quint64 CalcHammingDistance(quint64, quint64);
 
-	explicit Finder( QObject *parent = 0 );
+  struct FindsVect {
+    int numberOnList;
+    int numberCascade;
+    int sizeVect;
+  };
 
-    qint8 Color_conv( cv::Mat );
+  struct BaseVectors {
+    QString name;
+    quint64 hash;
+  };
 
-    struct FindsVect{
+ signals:
 
-        int numberOnList;
-        int numberCascade;
-        int sizeVect;
+  void FindEndMaySend(const qint8, const qint8, const qint32, int, qint8);
+  void FindEnd();
 
-    };
+ public slots:
 
-signals:
+  bool FindObject(const cv::Mat&, char, qint8, qint8, int);
+  QList<BaseVectors> LoadBase();
 
-    void FindEndMaySend( const qint8, const qint8, const qint8, int, qint8 );
-    void FindEnd();
+ private slots:
 
-public slots:
-
-   bool FindObject(const cv::Mat &, char, qint8, qint8, int );
-   QFileInfoList LoadCascades();
-
-private slots:
-
-private:
-
-   QFileInfoList __list;
-
+ private:
+  QList<BaseVectors> __list;
+  cv::Mat fr;
 };
 
-#endif // FINDER_H
+#endif  // FINDER_H
