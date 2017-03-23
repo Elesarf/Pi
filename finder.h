@@ -7,16 +7,15 @@
 
 #include "opencv2/core/core.hpp"
 
+#include "long_hash.h"
+
 class Finder : public QObject {
   Q_OBJECT
 
  public:
   explicit Finder(QObject* parent = 0);
 
-  qint8 Color_conv(cv::Mat);
-
-  quint64 GetHash(cv::Mat);
-  quint64 CalcHammingDistance(quint64, quint64);
+  void GetHash(cv::Mat, Long_hash*);
 
   struct FindsVect {
     int numberOnList;
@@ -26,7 +25,7 @@ class Finder : public QObject {
 
   struct BaseVectors {
     QString name;
-    quint64 hash;
+    Long_hash* hash;
   };
 
  signals:
@@ -36,14 +35,29 @@ class Finder : public QObject {
 
  public slots:
 
-  bool FindObject(const cv::Mat&, char, qint8, qint8, int);
-  QList<BaseVectors> LoadBase();
+  bool FindObject(const cv::Mat&, qint8, qint8, qint8, int);
+  void LoadBase();
+  void Checker(Long_hash*, QList<BaseVectors>&);
+  qint8 Color_conv(cv::Mat, QList<BaseVectors>&);
+  qint8 LD_Checker(cv::Mat, QList<BaseVectors>&);
+  qint8 Slim_Checker(cv::Mat, QList<BaseVectors>&);
+  qint8 Sovering_Checker(cv::Mat);
+  qint8 Winstone_Checker(cv::Mat);
+  qint8 More_Checker(cv::Mat);
+  qint8 Mevis_Cheker(cv::Mat);
 
  private slots:
 
  private:
-  QList<BaseVectors> __list;
-  cv::Mat fr;
+  QList<BaseVectors> __list[25];
+  cv::Mat __fr;
+
+  quint64 __hammingDistance = 0;
+  quint64 __tempDistance = 90;
+  qint8 __indexOfright = 0;
+  QString __bufString;
+
+  Long_hash* __hashFr;
 };
 
 #endif  // FINDER_H

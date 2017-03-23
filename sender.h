@@ -29,13 +29,15 @@ class Sender : public QObject {
 
   bool SendPlease(const qint8, const qint8, const qint32, int, qint8);
   bool IGetImage(const int, const char, const char);
+  bool UartChecker(QByteArray&);
 
  private:
   void __FillDispenser();
+  void __SaveToTxt(const QByteArray&);
 
   QDateTime __datetime;
   qint8 __sz;
-  Dispenser __dispenser[13][13];
+  Dispenser __dispenser[3][13];
   QNetworkAccessManager __man;
   QTimer __sendTimer;
   qint16 __timToTimer;

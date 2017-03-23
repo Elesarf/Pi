@@ -12,9 +12,9 @@ class Long_hash {
   ~Long_hash();
 
   string Dump() const;
-  void SetBit(int bitNum, bool on = true);
-  bool GetBit(int bitNum);
-  uint64_t distance(Long_hash& hash);
+  void SetBit(uint16_t bitNum, bool on = true);
+  bool GetBit(uint16_t bitNum);
+  uint64_t distance(Long_hash *hash);
 
   uint16_t GetSize() { return __size_data_bytes; }
   uint16_t GetSizeBits() { return __size_data_bits; }

@@ -7,14 +7,13 @@
 #define RF24_LINUX
 
 Protocol::Protocol(QObject* parent)
-  : QObject(parent)
-  , watchDogOnRecieve(this)
-  , watchDogOnPlace(this)
-  , state(S_INIT)
-  , radio(RPI_V2_GPIO_P1_22, RPI_V2_GPIO_P1_24, BCM2835_SPI_SPEED_8MHZ)
+    : QObject(parent),
+      watchDogOnRecieve(this),
+      watchDogOnPlace(this),
+      state(S_INIT),
+      radio(RPI_V2_GPIO_P1_22, RPI_V2_GPIO_P1_24, BCM2835_SPI_SPEED_8MHZ)
 
 {
-
   connect(&watchDogOnRecieve, &QTimer::timeout, [this]() {
 
     StopRF();
@@ -33,23 +32,16 @@ Protocol::Protocol(QObject* parent)
   __camwatcher = 0;
 }
 
-void
-Protocol::ReadyRead()
-{
-
+void Protocol::ReadyRead() {
   if (radio.available()) {
-
     switch (state) {
-
       case S_INIT: {
-
         radio.read(((char*)(&descriptor)), sizeof(descriptor));
 
         if (descriptor.id == 0x01) {
-
           watchDogOnPlace.stop();
           watchDogOnRecieve.stop();
-          watchDogOnRecieve.start(15000);
+          watchDogOnRecieve.start(6000);
 
           memset(&buffer, 0, sizeof(Protocol::buffer));
           data.clear();
@@ -61,9 +53,10 @@ Protocol::ReadyRead()
           qDebug() << "Start recieve JPG";
 
           state = S_READ_DATA;
+          watchDogOnRecieve.stop();
+          watchDogOnRecieve.start(8000);
 
           if ((descriptor.data[0] != 0xff) && (descriptor.data[1] != 0xd8)) {
-
             qDebug() << "Error recieve picture";
             state = S_INIT;
           }
@@ -73,9 +66,7 @@ Protocol::ReadyRead()
         break;
       }
 
-
       case S_READ_DATA: {
-
         radio.read(((char*)&buffer), 32);
 
         uint8_t end = 0;
@@ -87,23 +78,21 @@ Protocol::ReadyRead()
           break;
 
         } else if (buffer.id == 0x02) {
-
           for (uint8_t i = 0; i < sizeof(buffer.data); ++i) {
-
             if (!(buffer.data[i] == 0xff && buffer.data[i + 1] == 0xd9)) {
-
               data += buffer.data[i];
               end = i;
 
             } else {
-
               data += buffer.data[end + 1];
               data += buffer.data[end + 2];
 
               qDebug() << "Recieve picture ok ";
 
-              emit EndOfRecive(data.size(), descriptor.numPlace, descriptor.numCam);
-              emit GoToCrop(data, descriptor.numCam, descriptor.numPlace);
+              //              emit EndOfRecive(data.size(), descriptor.numPlace,
+              //                               descriptor.numCam);
+              emit GoToCrop(data, descriptor.numCam,
+                            static_cast<qint8>(descriptor.numPlace - 0x30));
 
               memset(&buffer, 0, sizeof(Protocol::buffer));
 
@@ -112,15 +101,13 @@ Protocol::ReadyRead()
               watchDogOnRecieve.stop();
 
               if (__camwatcher >= 5) {
-
                 data.clear();
                 __camwatcher = 0;
                 state = S_INIT;
                 watchDogOnRecieve.start(4000);
 
               } else {
-
-                watchDogOnRecieve.start(11000);
+                watchDogOnRecieve.start(2000);
               }
 
               data.clear();
@@ -138,24 +125,26 @@ Protocol::ReadyRead()
   watchDogOnPlace.start(0);
 }
 
-bool
-Protocol::InitRF()
-{
+bool Protocol::InitRF() {
 
-//  if (placeNumber < 102 && placeNumber >= 100) {
-//    placeNumber += 2;
-//  }
+  switch (placeNumber) {
+    case 100:
+      placeNumber = 106;
+      break;
+    case 106:
+      placeNumber = 100;
+      break;
+    default:
+      placeNumber = 100;
+      break;
+  }
 
-//  else {
-    placeNumber = 100;
-//  }
+  radio.setChannel(placeNumber);    // Chanel #add
+  radio.setPALevel(RF24_PA_MAX);    // Power
+  radio.setDataRate(RF24_1MBPS);    // Speed =1Mb
+  radio.setCRCLength(RF24_CRC_16);  // Use 16-bit CRC
 
-  radio.setChannel(placeNumber);   // Chanel #add
-  radio.setPALevel(RF24_PA_MAX);   // Power
-  radio.setDataRate(RF24_1MBPS);   // Speed =1Mb
-  radio.setCRCLength(RF24_CRC_16); // Use 16-bit CRC
-
-  radio.openReadingPipe(0, 0x0130303037LL); // Listening address 100007 in HEX
+  radio.openReadingPipe(0, 0x0130303037LL);  // Listening address 100007 in HEX
   radio.startListening();
 
   qDebug() << QString("Init RF on address #%1 ....Ok").arg(placeNumber);
@@ -166,16 +155,15 @@ Protocol::InitRF()
   return true;
 }
 
-bool
-Protocol::StopRF()
-{
-
+bool Protocol::StopRF() {
   radio.stopListening();
   radio.closeReadingPipe(0);
   radio.powerDown();
 
   memset(&buffer, 0, sizeof(Protocol::buffer));
   data.clear();
+
+  state = S_INIT;
 
   delay(1000);
   radio.powerUp();
@@ -184,13 +172,9 @@ Protocol::StopRF()
   return true;
 }
 
-void
-Protocol::Start()
-{
-
+void Protocol::Start() {
   if (!radio.begin()) {
-
-    qDebug() << "Error: init RF24 fail"; // Begin crash
+    qDebug() << "Error: init RF24 fail";  // Begin crash
   }
 
   InitRF();

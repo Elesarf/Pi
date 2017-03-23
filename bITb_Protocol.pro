@@ -21,13 +21,15 @@ SOURCES += main.cpp \
     protocol.cpp \
     jpgcrop.cpp \
     finder.cpp \
-    sender.cpp
+    sender.cpp \
+    long_hash.cpp
 
 HEADERS += \
     protocol.h \
     jpgcrop.h \
     finder.h \
-    sender.h
+    sender.h \
+    long_hash.h
 
 
 
