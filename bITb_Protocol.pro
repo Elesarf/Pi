@@ -22,14 +22,16 @@ SOURCES += main.cpp \
     jpgcrop.cpp \
     finder.cpp \
     sender.cpp \
-    long_hash.cpp
+    long_hash.cpp \
+    my_tcpsocket.cpp
 
 HEADERS += \
     protocol.h \
     jpgcrop.h \
     finder.h \
     sender.h \
-    long_hash.h
+    long_hash.h \
+    my_tcpsocket.h
 
 
 

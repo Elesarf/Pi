@@ -18,21 +18,8 @@ JPGcrop::JPGcrop(QObject* parent) : QObject(parent) {
   __roi[7] = cv::Rect(992 + margin, 9, 1420 - 956 + margin, 240 - 24);
   __roi[12] = cv::Rect(20 + margin, 25, 426 - 86 + margin, 236 - 18);
   __roi[11] = cv::Rect(451 + margin, 46, 936 - 451 + margin, 230 - 46);
-  __roi[10] =
-      cv::Rect(975 + margin, 40 + 40, 1448 - 975 + margin, 234 - 40 + 40);
+  __roi[10] = cv::Rect(975 + margin, 40 + 40, 1448 - 975 + margin, 234 - 40 + 40);
 
-//  __roi1[3] = cv::Rect(144, 76, 529-144, 270-76);
-//  __roi1[2] = cv::Rect(630, 82, 1103-630, 281-82);
-//  __roi1[1] = cv::Rect(1160, 97, 1548-1160, 266-97);
-//  __roi1[6] = cv::Rect(175, 73, 543-175, 261-73);
-//  __roi1[5] = cv::Rect(636, 93, 1089-636, 267-93);
-//  __roi1[4] = cv::Rect(1170, 82, 1560-1170, 232-82);
-//  __roi1[9] = cv::Rect(114, 63, 482-114, 239-63);
-//  __roi1[8] = cv::Rect(559, 58, 1007-559, 218-58);
-//  __roi1[7] = cv::Rect(1080, 77, 1463-1080, 220-77);
-//  __roi1[12] = cv::Rect(90, 26, 459-90, 207-26);
-//  __roi1[11] = cv::Rect(506, 28, 967-506, 191-28);
-//  __roi1[10] = cv::Rect(1065, 21, 1434-1065, 157-21);
 }
 
 bool JPGcrop::MakeMat(QByteArray array, char cam, qint8 place) {
@@ -82,29 +69,6 @@ bool JPGcrop::MakeMat(QByteArray array, char cam, qint8 place) {
             default:
               break;
           }
-
-//          if (place == 1) {
-//            switch (numpack) {
-//              case 7:
-//                numpack = 10;
-//                break;
-//              case 8:
-//                numpack = 11;
-//                break;
-//              case 9:
-//                numpack = 12;
-//                break;
-//              case 10:
-//                numpack = 7;
-//                break;
-//              case 11:
-//                numpack = 8;
-//                break;
-//              case 12:
-//                numpack = 9;
-//                break;
-//            }
-//          }
 
               emit EndOfCrop(img(__roi[numpack]), numpack, i, place, array.size());
 

@@ -127,17 +127,20 @@ void Protocol::ReadyRead() {
 
 bool Protocol::InitRF() {
 
-  switch (placeNumber) {
-    case 100:
-      placeNumber = 106;
-      break;
-    case 106:
-      placeNumber = 100;
-      break;
-    default:
-      placeNumber = 100;
-      break;
-  }
+
+//  switch (placeNumber) {
+//    case 100:
+//      placeNumber = 106;
+//      break;
+//    case 106:
+//      placeNumber = 100;
+//      break;
+//    default:
+//      placeNumber = 100;
+//      break;
+//  }
+
+    placeNumber = 106;
 
   radio.setChannel(placeNumber);    // Chanel #add
   radio.setPALevel(RF24_PA_MAX);    // Power

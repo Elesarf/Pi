@@ -2,6 +2,7 @@
 #include "jpgcrop.h"
 #include "finder.h"
 #include "sender.h"
+#include "my_tcpsocket.h"
 
 #include <QObject>
 #include <QDebug>
@@ -51,17 +52,17 @@ int main(int argc, char* argv[]) {
   JPGcrop cr;
   Finder fd;
   Sender sd;
+  My_TCPSocket skt;
 
   QThread thFS;
-  QThread thRf;
-  // QThread thCr;
+  QThread thRecieve;
   QObject thGroup;
 
   QObject::connect(&fd, SIGNAL(FindEndMaySend(const qint8, const qint8,
                                               const qint32, const int, qint8)),
                    &sd, SLOT(SendPlease(qint8, qint8, qint32, int, qint8)));
 
-  QObject::connect(&thRf, SIGNAL(started()), &pr, SLOT(Start()));
+  QObject::connect(&thRecieve, SIGNAL(started()), &pr, SLOT(Start()));
 
   QObject::connect(&pr, SIGNAL(GoToCrop(QByteArray, const char, const qint8)),
                    &cr, SLOT(MakeMat(QByteArray, char, qint8)));
@@ -72,16 +73,18 @@ int main(int argc, char* argv[]) {
   QObject::connect(&pr, SIGNAL(EndOfRecive(int, char, char)), &sd,
                    SLOT(IGetImage(int, char, char)));
 
+  QObject::connect(&skt, SIGNAL(imgComplete(QByteArray, char, qint8)), &cr,
+                   SLOT(MakeMat(QByteArray, char, qint8)));
+
   fd.setParent(&thGroup);
   sd.setParent(&thGroup);
   cr.setParent(&thGroup);
 
-  pr.moveToThread(&thRf);
-  // cr.moveToThread( &thCr );
+  pr.moveToThread(&thRecieve);
+  skt.moveToThread(&thRecieve);
   thGroup.moveToThread(&thFS);
 
-  thRf.start();
-  // thCr.start();
+  thRecieve.start();
   thFS.start();
 
   fd.LoadBase();

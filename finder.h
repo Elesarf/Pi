@@ -17,12 +17,6 @@ class Finder : public QObject {
 
   void GetHash(cv::Mat, Long_hash*);
 
-  struct FindsVect {
-    int numberOnList;
-    int numberCascade;
-    int sizeVect;
-  };
-
   struct BaseVectors {
     QString name;
     Long_hash* hash;
@@ -38,9 +32,11 @@ class Finder : public QObject {
   bool FindObject(const cv::Mat&, qint8, qint8, qint8, int);
   void LoadBase();
   void Checker(Long_hash*, QList<BaseVectors>&);
-  qint8 Color_conv(cv::Mat, QList<BaseVectors>&);
-  qint8 LD_Checker(cv::Mat, QList<BaseVectors>&);
-  qint8 Slim_Checker(cv::Mat, QList<BaseVectors>&);
+
+
+  bool Color_conv(cv::Mat, cv::Scalar, cv::Scalar);
+  qint8 LD_Checker(cv::Mat);
+  qint8 Slim_Checker(cv::Mat);
   qint8 Sovering_Checker(cv::Mat);
   qint8 Winstone_Checker(cv::Mat);
   qint8 More_Checker(cv::Mat);

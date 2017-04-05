@@ -29,86 +29,37 @@ bool Finder::FindObject(const cv::Mat& frame,
   qint8 tempFinds = 4;
   __hashFr = new Long_hash(15000);
   frame.copyTo(__fr);
-  //  __fr *= 2;
   GetHash(__fr, __hashFr);
 
-/*  if ((cam == 10) || (cam == 11) ||
-      (cam == 12)) {  // cam 10-12 checked on slim method
-    Slim_Checker(__fr, __list[(place - 1) * 12 + cam - 1]);
-  } else {*/  // other cams checked normaly
+  qDebug() << "Find on #" << place << " place, #" << cam << " cam";
+  qDebug() << "Using base #" << (place - 1) * 12 + cam;
 
-    // int colorIndex = Color_conv(__fr, __list[(place - 1) * 12 + cam - 1]);
+  Checker(__hashFr, __list[(place - 1) * 12 + cam - 1]);
+  qDebug() << "Index: " << __indexOfright;
 
-    qDebug() << "Find on #" << place << " place, #" << cam << " cam";
-    qDebug() << "Using base #" << (place - 1) * 12 + cam;
+  if ((__bufString == "01_Winstone_Blue") ||
+      (__bufString == "15_Winstone_Silver"))
+    Winstone_Checker(__fr);
 
-    Checker(__hashFr, __list[(place - 1) * 12 + cam - 1]);
+  if ((__bufString == "07_LD_Blue") || (__bufString == "09_LD_Red"))
+    LD_Checker(__fr);
 
-//    if (__indexOfright == 8) {
-////      qint8 index = Mevis_Cheker(__fr);
-////      if (index == 0)
-////        index = __indexOfright;
+  if ((__bufString == "08_LD_Soveriegn_Blue") ||
+      (__bufString == "10_LD_Soveriegn_Red"))
+    Sovering_Checker(__fr);
 
-////      __hammingDistance =
-////          __list[(place - 1) * 12 + cam - 1][index].hash->distance(__hashFr);
-////      qDebug() << "Mevis distance: " << __hammingDistance;
-////      if (__hammingDistance < 2000) {
-////        qDebug() << "Mevis Replaced Hash";
-////        GetHash(__fr, __list[(place - 1) * 12 + cam - 1][index].hash);
-////      }
-//__bufString = "00_Free";
-//    }
+  if ((__bufString == "11_More_Blue") || (__bufString == "13_More_Red"))
+    More_Checker(__fr);
 
-    qDebug() << "Index: " << __indexOfright;
-    if ((__indexOfright == 2) || (__indexOfright == 4) ||
-        (__indexOfright == 9))  // if cam have LD, check it by color
-    {
-      qint8 index = LD_Checker(__fr, __list[(place - 1) * 12 + cam - 1]);
-      __hammingDistance =
-          __list[(place - 1) * 12 + cam - 1][index].hash->distance(__hashFr);
-      qDebug() << "LD distance: " << __hammingDistance;
-      if (__hammingDistance < 2000) {
-        qDebug() << "LD Replaced Hash";
-        GetHash(__fr, __hashFr);
-      }
-    }
+  if (__bufString == "14_Mevis")
+    More_Checker(__fr);
 
-    if ((__indexOfright == 5) || (__indexOfright == 3)) {
-      qint8 index = Sovering_Checker(__fr);
-      __hammingDistance =
-          __list[(place - 1) * 12 + cam - 1][index].hash->distance(__hashFr);
-      qDebug() << "LD Sovering distance: " << __hammingDistance;
-      if (__hammingDistance < 2000) {
-        qDebug() << "LD Sovering Replaced Hash";
-        GetHash(__fr, __list[(place - 1) * 12 + cam - 1][index].hash);
-      }
-    }
+  cv::imwrite(
+      (QString("/home/pi/shr/#%2_place_#%1_pack.jpg").arg(cam).arg(place))
+          .toStdString(),
+      __fr);
 
-    if ((__indexOfright == 1) || (__indexOfright == 8)) {
-      qint8 index = Winstone_Checker(__fr);
-
-      if ((index == 77) || (index == 0))
-        index = __indexOfright;
-
-      __hammingDistance =
-          __list[(place - 1) * 12 + cam - 1][index].hash->distance(__hashFr);
-      qDebug() << "Winstone distance: " << __hammingDistance;
-      if (__hammingDistance < 2000) {
-        qDebug() << "Winstone Replaced Hash";
-        GetHash(__fr, __list[(place - 1) * 12 + cam - 1][index].hash);
-      }
-    }
-
-    if ((__indexOfright == 7) || (__indexOfright == 6)){
-        More_Checker(__fr);
-        __bufString = "11_More_Blue";
-    }
-//  }
-
-  nameOnWindow = __bufString.toStdString();
-  cv::imwrite((QString("/home/pi/shr/#%2_place_#%1_pack.jpg").arg(cam).arg(place)).toStdString(),
-              __fr);
-  qDebug() << "Finder -> found " << QString::fromStdString(nameOnWindow)
+  qDebug() << "Finder -> found " << __bufString
            << QString(" on pack_#%1 #%2 matches ").arg(cam).arg(__tempDistance);
 
   __bufString.chop(__bufString.length() - 2);
@@ -121,7 +72,7 @@ bool Finder::FindObject(const cv::Mat& frame,
 }
 
 void Finder::Checker(Long_hash* hashFr, QList<BaseVectors>& __list) {
-    for (qint8 index = 0; index < __list.length(); ++index) {
+  for (qint8 index = 0; index < __list.length(); ++index) {
     __hammingDistance = __list[index].hash->distance(hashFr);
 
     qDebug() << "Base name: " << __list[index].name
@@ -146,209 +97,86 @@ void Finder::Checker(Long_hash* hashFr, QList<BaseVectors>& __list) {
   } else {
     __bufString = QChar(__indexOfright);
   }
+
+  __bufString.chop(3);
 }
 
-qint8 Finder::Color_conv(cv::Mat frame, QList<BaseVectors>& __list) {
-  qDebug() << "Finder -> Color_conv";
-  cv::Mat HSV, threshold, blurred;
-
-  cv::GaussianBlur(frame, frame, cv::Size(3, 3), 4, 4);
-
-  cv::cvtColor(frame, HSV, CV_BGR2HSV);
-
-  cv::medianBlur(HSV, blurred, 21);
-
-  inRange(HSV, cv::Scalar(110, 221, 145), cv::Scalar(119, 250, 250), threshold);
-  for (int y = 0; y < threshold.rows; y++) {
-    for (int x = 0; x < threshold.cols; x++) {
-      int value = threshold.at<uchar>(y, x);
-      if (value == 255) {
-        cv::Rect rect;
-        int count =
-            cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
-        Q_UNUSED(count);
-        if (rect.width >= 150 && rect.width <= 400 && rect.height >= 150 &&
-            rect.height <= 400) {
-          qDebug() << "Color find 8";
-
-          __bufString = "08_LD_Soveri_Blue";
-
-          return 8;
-        }
-      }
-    }
-  }
-
-  return 0;
-}
-
-qint8 Finder::LD_Checker(
-    cv::Mat frame,
-    QList<Finder::BaseVectors>&
-        list) {  // TODO color coefficient!!!!!!! to blue, red LD
+qint8 Finder::LD_Checker(cv::Mat frame) {
   qDebug() << "Finder -> LD_Checker";
 
-  //  Point pts[1][4];
-  //  pts[0][0] = Point(0, 0);
-  //  pts[0][1] = Point(frame.cols / 2, 0);
-  //  pts[0][2] = Point(frame.cols / 2, frame.rows);
-  //  pts[0][3] = Point(0, frame.rows);
+  if (Color_conv(frame, cv::Scalar(0, 56, 50), cv::Scalar(21, 241, 255)))
+    __bufString = "09_LD_Red";
 
-  //  const Point* points[1] = {pts[0]};
-  //  int npoints = 4;
-  //  Mat1b mask(frame.rows, frame.cols, uchar(0));
-  //  fillPoly(mask, points, &npoints, 1, Scalar(255));
+  if (Color_conv(frame, cv::Scalar(171, 130, 64), cv::Scalar(177, 223, 255)))
+    __bufString = "09_LD_Red";
 
-  //  Scalar average = mean(frame, mask);
+  if (Color_conv(frame, cv::Scalar(106, 152, 72), cv::Scalar(115, 251, 247)))
+    __bufString = "09_LD_Blue";
 
-  //  qreal diff1 = average[0] - average[1];
-  //  qreal diff2 = average[1] - average[2];
+  qDebug() << "Color conv found " <<  __bufString;
 
-  //  if (diff2 < 0) {
-  //    qDebug() << "Red";
-  //    qDebug() << "0: " << average[0] << " 1: " << average[1]
-  //             << " 2: " << average[2];
-  //    __bufString = "09_LD_Red";
-  //  } else {
-  //      qDebug() << "Blue";
-  //      qDebug() << "0: " << average[0] << " 1: " << average[1]
-  //               << " 2: " << average[2];
-  //      __bufString = "07_LD_Blue";
-  //  }
+//  cv::Mat HSV, threshold, blurred;
+//  cv::GaussianBlur(frame, frame, cv::Size(3, 3), 4, 4);
+//  cv::cvtColor(frame, HSV, CV_BGR2HSV);
+//  cv::medianBlur(HSV, blurred, 21);
 
-  qint8 sumBlue = 0;
-  qint8 sumSilver = 0;
-  qint8 sumRed = 0;
-  qint8 selectedColor = 0;
+//  inRange(HSV, cv::Scalar(0, 56, 50), cv::Scalar(21, 241, 255), threshold);
+//  for (int y = 0; y < threshold.rows; y++) {
+//    for (int x = 0; x < threshold.cols; x++) {
+//      int value = threshold.at<uchar>(y, x);
+//      if (value == 255) {
+//        cv::Rect rect;
+//        int count =
+//            cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
+//        Q_UNUSED(count);
+//        if (rect.width >= 40 && rect.width <= 400 && rect.height >= 40 &&
+//            rect.height <= 400) {
+//          qDebug() << "Color find Red";
 
-  cv::Mat HSV, threshold, blurred;
-  cv::GaussianBlur(frame, frame, cv::Size(3, 3), 4, 4);
-  cv::cvtColor(frame, HSV, CV_BGR2HSV);
-  cv::medianBlur(HSV, blurred, 21);
+//          __bufString = "09_LD_Red";
+//        }
+//      }
+//    }
+//  }
 
-  inRange(HSV, cv::Scalar(0, 56, 50), cv::Scalar(21, 241, 255), threshold);
-  for (int y = 0; y < threshold.rows; y++) {
-    for (int x = 0; x < threshold.cols; x++) {
-      int value = threshold.at<uchar>(y, x);
-      if (value == 255) {
-        cv::Rect rect;
-        int count =
-            cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
-        // qDebug() << "FloodFill: " << count;
+//  inRange(HSV, cv::Scalar(106, 152, 72), cv::Scalar(115, 251, 247), threshold);
+//  for (int y = 0; y < threshold.rows; y++) {
+//    for (int x = 0; x < threshold.cols; x++) {
+//      int value = threshold.at<uchar>(y, x);
+//      if (value == 255) {
+//        cv::Rect rect;
+//        int count =
+//            cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
+//        Q_UNUSED(count);
+//        if (rect.width >= 40 && rect.width <= 400 && rect.height >= 40 &&
+//            rect.height <= 400) {
+//          qDebug() << "Color find Blue";
+//          __bufString = "07_LD_Blue";
+//        }
+//      }
+//    }
+//  }
 
-        sumRed += count;
+//  inRange(HSV, cv::Scalar(171, 130, 64), cv::Scalar(177, 223, 255), threshold);
+//  for (int y = 0; y < threshold.rows; y++) {
+//    for (int x = 0; x < threshold.cols; x++) {
+//      int value = threshold.at<uchar>(y, x);
+//      if (value == 255) {
+//        cv::Rect rect;
+//        int count =
+//            cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
+//        if (rect.width >= 40 && rect.width <= 400 && rect.height >= 40 &&
+//            rect.height <= 400) {
+//          qDebug() << "Color find Red";
 
-        // Q_UNUSED(count);
-        if (rect.width >= 40 && rect.width <= 400 && rect.height >= 40 &&
-            rect.height <= 400) {
-          qDebug() << "Color find 4";
-
-          __bufString = "09_LD_Red";
-
-          selectedColor = 4;
-          // return 4;
-        }
-      }
-    }
-  }
-
-  if (selectedColor == 0) {
-    inRange(HSV, cv::Scalar(106, 152, 72), cv::Scalar(115, 251, 247),
-            threshold);
-    for (int y = 0; y < threshold.rows; y++) {
-      for (int x = 0; x < threshold.cols; x++) {
-        int value = threshold.at<uchar>(y, x);
-        if (value == 255) {
-          cv::Rect rect;
-          int count =
-              cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
-
-          sumBlue += count;
-          // qDebug() << "FloodFill: " << count;
-          // Q_UNUSED(count);
-          if (rect.width >= 40 && rect.width <= 400 && rect.height >= 40 &&
-              rect.height <= 400) {
-            qDebug() << "Color find 2";
-
-            __bufString = "07_LD_Blue";
-
-            selectedColor = 2;
-            // return 4;
-          }
-        }
-      }
-    }
-  }
-
-  inRange(HSV, cv::Scalar(171, 130, 64), cv::Scalar(177, 223, 255), threshold);
-  for (int y = 0; y < threshold.rows; y++) {
-    for (int x = 0; x < threshold.cols; x++) {
-      int value = threshold.at<uchar>(y, x);
-      if (value == 255) {
-        cv::Rect rect;
-        int count =
-            cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
-        // qDebug() << "FloodFill: " << count;
-
-        sumRed += count;
-
-        // Q_UNUSED(count);
-        if (rect.width >= 40 && rect.width <= 400 && rect.height >= 40 &&
-            rect.height <= 400) {
-          qDebug() << "Color find 4";
-
-          __bufString = "09_LD_Red";
-
-          selectedColor = 4;
-          // return 4;
-        }
-      }
-    }
-  }
-
-  //    if (selectedColor == 0) {
-  //      inRange(HSV, cv::Scalar(68, 16, 66), cv::Scalar(113, 89, 139),
-  //      threshold);
-  //      for (int y = 0; y < threshold.rows; y++) {
-  //        for (int x = 0; x < threshold.cols; x++) {
-  //          int value = threshold.at<uchar>(y, x);
-  //          if (value == 255) {
-  //            cv::Rect rect;
-  //            int count =
-  //                cv::floodFill(threshold, cv::Point(x, y),
-  //                cv::Scalar(200),
-  //                &rect);
-  //            // qDebug() << "FloodFill: " << count;
-
-  //            sumSilver += count;
-
-  //            // Q_UNUSED(count);
-  //            if (rect.width >= 40 && rect.width <= 400 && rect.height >=
-  //            40
-  //            &&
-  //                rect.height <= 400) {
-  //              qDebug() << "Color find 10";
-
-  //              __bufString = "17_LD_Silver";
-
-  //              selectedColor = 10;
-  //              // return 10;
-  //            }
-  //          }
-  //        }
-  //      }
-  //    }
-
-  if (selectedColor == 0)
-    __bufString = "00_Free";
-
-  //    qDebug() << "Red: " << sumRed << " Blue: " << sumBlue
-  //             << " Silver: " << sumSilver;
-
-  return selectedColor;
+//          __bufString = "09_LD_Red";
+//        }
+//      }
+//    }
+//  }
 }
 
-qint8 Finder::Slim_Checker(cv::Mat frame, QList<Finder::BaseVectors>& list) {
+qint8 Finder::Slim_Checker(cv::Mat frame) {
   qDebug() << "Finder -> Slim_Cheker";
 
   cv::Mat HSV, threshold, blurred;
@@ -561,27 +389,26 @@ qint8 Finder::Winstone_Checker(Mat frame) {
       }
     }
   }
-if(__tempDistance > 1500)
-  {
-      inRange(HSV, cv::Scalar(94, 32, 134), cv::Scalar(105, 103, 255), threshold);
-      for (int y = 0; y < threshold.rows; y++) {
-          for (int x = 0; x < threshold.cols; x++) {
-              int value = threshold.at<uchar>(y, x);
-              if (value == 255) {
-                  cv::Rect rect;
-                  int count =
-                          cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
-                  Q_UNUSED(count);
-                  if (rect.width >= 50 && rect.width <= 250 && rect.height >= 50 &&
-                          rect.height <= 250) {
-                      qDebug() << "Color find 0";
-                      __bufString = "00_Free";
+  if (__tempDistance > 1500) {
+    inRange(HSV, cv::Scalar(94, 32, 134), cv::Scalar(105, 103, 255), threshold);
+    for (int y = 0; y < threshold.rows; y++) {
+      for (int x = 0; x < threshold.cols; x++) {
+        int value = threshold.at<uchar>(y, x);
+        if (value == 255) {
+          cv::Rect rect;
+          int count =
+              cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
+          Q_UNUSED(count);
+          if (rect.width >= 50 && rect.width <= 250 && rect.height >= 50 &&
+              rect.height <= 250) {
+            qDebug() << "Color find 0";
+            __bufString = "00_Free";
 
-                      return 0;
-                  }
-              }
+            return 0;
           }
+        }
       }
+    }
   }
 
   if (blue && silver) {
@@ -696,35 +523,12 @@ qint8 Finder::Mevis_Cheker(Mat frame) {
       }
     }
   }
-
-
-  //  inRange(HSV, cv::Scalar(103, 49, 42), cv::Scalar(128, 175, 87),
-  //  threshold);
-  //  for (int y = 0; y < threshold.rows; y++) {
-  //    for (int x = 0; x < threshold.cols; x++) {
-  //      int value = threshold.at<uchar>(y, x);
-  //      if (value == 255) {
-  //        cv::Rect rect;
-  //        int count =
-  //            cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200),
-  //            &rect);
-  //        Q_UNUSED(count);
-  //        if (rect.width >= 40 && rect.width <= 600 && rect.height >= 40
-  //        &&
-  //            rect.height <= 600) {
-  //          qDebug() << "Color find 1";
-
-  //          __bufString = "18_Mevis";
-
-  //          return 11;
-  //        }
-  //      }
-  //    }
-  //  }
-
   return 0;
 }
 
+/////////////
+/// \brief Finder::LoadBase
+/// Load in list Base Vectors names, and hash`s all packs from base
 void Finder::LoadBase() {
   QFile base;
   bool checkBase = true;
@@ -732,8 +536,8 @@ void Finder::LoadBase() {
   if (base.open(QIODevice::ReadOnly) && checkBase) {
     qDebug() << "Base file not open, calculating base";
 
-    QDir baseDir;         // Base directory
-    QStringList filters;  // only image
+    QDir baseDir;
+    QStringList filters;
     QFileInfoList listImage[25];
     cv::Mat fr;
     Finder::BaseVectors bv;
@@ -792,6 +596,11 @@ void Finder::LoadBase() {
   }
 }
 
+//////////////
+/// \brief Finder::GetHash
+/// \param frame - in format opencv Mat
+/// \param hh - ref to hash
+///
 void Finder::GetHash(cv::Mat frame, Long_hash* hh) {
   cv::Mat __frame;
   cv::Scalar __average;
@@ -813,4 +622,39 @@ void Finder::GetHash(cv::Mat frame, Long_hash* hh) {
       ++__index;
     }
   }
+}
+
+////////////////////
+/// \brief Finder::Color_conv
+/// \param frame
+/// \param min
+/// \param max
+/// \return
+/// this template to future
+bool Finder::Color_conv(cv::Mat frame, Scalar min, Scalar max) {
+  qDebug() << "Finder -> Color_conv";
+
+  cv::Mat HSV, threshold, blurred;
+  cv::GaussianBlur(frame, frame, cv::Size(3, 3), 4, 4);
+  cv::cvtColor(frame, HSV, CV_BGR2HSV);
+  cv::medianBlur(HSV, blurred, 21);
+
+  inRange(HSV, min, max, threshold);
+  for (int y = 0; y < threshold.rows; y++) {
+    for (int x = 0; x < threshold.cols; x++) {
+      int value = threshold.at<uchar>(y, x);
+      if (value == 255) {
+        cv::Rect rect;
+        int count =
+            cv::floodFill(threshold, cv::Point(x, y), cv::Scalar(200), &rect);
+        Q_UNUSED(count);
+        if (rect.width >= 150 && rect.width <= 400 && rect.height >= 150 &&
+            rect.height <= 400) {
+            imwrite("/home/pi/shr/tresh.jpg", threshold);
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
