@@ -2,90 +2,135 @@
 #include "jpgcrop.h"
 #include "finder.h"
 #include "sender.h"
+#include "my_tcpsocket.h"
 
 #include <QObject>
 #include <QDebug>
 #include <QCoreApplication>
 #include <QString>
 #include <QThread>
+#include <QFile>
 
-Q_DECLARE_METATYPE( cv::Mat )
-Q_DECLARE_METATYPE( Protocol::Descriptor )
-Q_DECLARE_METATYPE( std::uint8_t )
+Q_DECLARE_METATYPE(cv::Mat)
+Q_DECLARE_METATYPE(Protocol::Descriptor)
+Q_DECLARE_METATYPE(std::uint8_t)
 
 #define OPENSSL_CPUID_SETUP
 
 QT_USE_NAMESPACE
 
-#include <dlfcn.h> // it just be here
+#include <dlfcn.h>  // it just be here
 
-int main(int argc, char *argv[])
-{
-    QCoreApplication a(argc, argv);
+///////////
+/// \brief checkerBase
+/// \return
+/// checked base on server
+bool checkerBase();
 
-    qDebug() << "";
+///////////
+/// \brief uartSetter
+/// setting raspberry to uart out
+void uartSetter();
 
-    qRegisterMetaType < cv::Mat >( "cv::Mat" );
-    qRegisterMetaType < std::uint8_t >( "std::uint8_t" );
-    qRegisterMetaType < Protocol::Descriptor >( "Protocol::Descriptor" );
+int main(int argc, char* argv[]) {
+  QCoreApplication a(argc, argv);
 
-    Protocol pr;
-    JPGcrop  cr;
-    Finder   fd;
-    Sender   sd;
+  qDebug() << "";
 
+  //  if (!checkerBase())
+  //    qDebug() << "Warning: base not upgrade";
 
-    QThread  thFS;
-    QThread  thRf;
-    QThread  thCr;
-    QObject  thGroup;
+  uartSetter();
 
-    QObject::connect( &fd, SIGNAL( FindEndMaySend( const qint8, const qint8, const qint32, const int, qint8)),
-                      &sd, SLOT( SendPlease( qint8, qint8, qint32, int, qint8 ))
-                      );
+  system("mount -t tmpfs -o size=50m tmpfs /home/pi/shr/");  // it may be neednt
 
-    QObject::connect( &thRf, SIGNAL( started() ),
-                      &pr,   SLOT( Start() )
-                      );
+  qRegisterMetaType<cv::Mat>("cv::Mat");
+  qRegisterMetaType<std::uint8_t>("std::uint8_t");
+  qRegisterMetaType<Protocol::Descriptor>("Protocol::Descriptor");
 
-    QObject::connect( &pr, SIGNAL( GoToCrop( QByteArray, const char, const char )),
-                      &cr, SLOT( MakeMat( QByteArray, char, char ))
-                    );
+  Protocol pr;
+  JPGcrop cr;
+  Finder fd;
+  Sender sd;
+  My_TCPSocket skt;
 
-    QObject::connect( &cr, SIGNAL( EndOfCrop( cv::Mat, char, qint8, qint8, int )),
-                      &fd, SLOT ( FindObject( cv::Mat, char, qint8, qint8, int ))
-                    );
+  QThread thFS;
+  QThread thRecieve;
+  QObject thGroup;
 
-    QObject::connect( &pr, SIGNAL( EndOfRecive( int, char, char )),
-                      &sd, SLOT( IGetImage( int, char, char ))
-                      );
+  QObject::connect(&fd, SIGNAL(FindEndMaySend(const qint8, const qint8,
+                                              const qint32, const int, qint8)),
+                   &sd, SLOT(SendPlease(qint8, qint8, qint32, int, qint8)));
 
-    fd.setParent( &thGroup );
-    sd.setParent( &thGroup );
+  QObject::connect(&thRecieve, SIGNAL(started()), &pr, SLOT(Start()));
 
-    pr.moveToThread( &thRf );
-    cr.moveToThread( &thCr );
-    thGroup.moveToThread( &thFS );
+  QObject::connect(&pr, SIGNAL(GoToCrop(QByteArray, const char, const qint8)),
+                   &cr, SLOT(MakeMat(QByteArray, char, qint8)));
 
-    thRf.start();
-    thCr.start();
-    thFS.start();
+  QObject::connect(&cr, SIGNAL(EndOfCrop(cv::Mat, qint8, qint8, qint8, int)),
+                   &fd, SLOT(FindObject(cv::Mat, qint8, qint8, qint8, int)));
 
-    fd.LoadBase();
+  QObject::connect(&pr, SIGNAL(EndOfRecive(int, char, char)), &sd,
+                   SLOT(IGetImage(int, char, char)));
 
-    return a.exec();
+  QObject::connect(&skt, SIGNAL(imgComplete(QByteArray, char, qint8)), &cr,
+                   SLOT(MakeMat(QByteArray, char, qint8)));
+
+  fd.setParent(&thGroup);
+  sd.setParent(&thGroup);
+  cr.setParent(&thGroup);
+
+  pr.moveToThread(&thRecieve);
+  skt.moveToThread(&thRecieve);
+  thGroup.moveToThread(&thFS);
+
+  thRecieve.start();
+  thFS.start();
+
+  fd.LoadBase();
+
+  return a.exec();
 }
 
+bool checkerBase() {
+  qDebug() << "Checking base to upgrade";
 
+  system(
+      "sshpass -p xXu3di2Ac ssh -p 6682 fedale@5.178.86.82 ls > "
+      "~/Base/out_server.txt");
+  system("ls > ~/Base/out_local.txt");
 
+  QFile out_ls_server("/home/pi/Base/out_local.txt");
+  QFile out_ls_local("/home/pi/Base/out_server.txt");
 
+  if ((!out_ls_local.open(QIODevice::ReadOnly | QIODevice::Text)) ||
+      (!out_ls_server.open(QIODevice::ReadOnly | QIODevice::Text))) {
+    qDebug() << "Error: canot open base upgrade file";
+    return false;
+  }
 
+  while (out_ls_server.atEnd()) {
+    if (out_ls_local.readLine() != out_ls_server.readLine()) {
+      qDebug() << "Base files is different, start load base from server";
 
+      //////////////
+      /// \brief system
+      /// may load base off server, if it sloooooow system, remove it))
+      system(
+          "(sshpass -p "
+          "xXu3di2Ac"
+          " scp -r -P 6682 fedale@5.178.86.82:/home/fedale/*.jpg "
+          "/home/pi/Base;exit");
+      qDebug() << "Loaded base off server, wait any seconds)";
+      return true;
+    }
+  }
+  return true;
+};
 
-
-
-
-
-
-
-
+void uartSetter() {
+  system(
+      "sudo echo 4 > /sys/class/gpio/export && echo out > "
+      "/sys/class/gpio/gpio4/direction");  // gpio set on pin 4
+  system("sudo echo 1 > /sys/class/gpio/gpio4/value");
+}

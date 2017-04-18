@@ -14,19 +14,22 @@ class JPGcrop : public QObject {
  public:
   explicit JPGcrop(QObject* parent = 0);
 
+  struct __roiDispenser {};
+
  public:
  signals:
 
-  void EndOfCrop(const cv::Mat&, char, qint8, qint8, const int);
+  void EndOfCrop(const cv::Mat&, qint8, qint8, qint8, const int);
 
  public slots:
 
-  bool MakeMat(QByteArray, char, char);
+  bool MakeMat(QByteArray, char, qint8);
  private slots:
 
  private:
   QByteArray __matArray;
-  cv::Rect __roi[3];
+  cv::Rect __roi[13];
+  cv::Rect __roi1[13];
 };
 
 #endif  // JPGCROP_H

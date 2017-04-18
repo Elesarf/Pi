@@ -35,7 +35,7 @@ class Protocol : public QObject {
 
   void EndOfRecive(const int, const char, const char);
   void EndReadPlace(const uint8_t);
-  void GoToCrop(QByteArray, const char, const char);
+  void GoToCrop(QByteArray, const char, const qint8);
 
  public slots:
 

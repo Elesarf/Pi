@@ -36,7 +36,7 @@ string Long_hash::Dump() const {
   return sstr.str();
 }
 
-void Long_hash::SetBit(int bitNum, bool on) {
+void Long_hash::SetBit(uint16_t bitNum, bool on) {
   int arrIndex = bitNum / 8 / sizeof(uint64_t);
   int bitIndex = bitNum % (sizeof(uint64_t) * 8);
 
@@ -47,19 +47,19 @@ void Long_hash::SetBit(int bitNum, bool on) {
   }
 }
 
-bool Long_hash::GetBit(int bitNum) {
+bool Long_hash::GetBit(uint16_t bitNum) {
   int arrIndex = bitNum / 8 / sizeof(uint64_t);
   int bitIndex = bitNum % (sizeof(uint64_t) * 8);
 
   return __data[arrIndex] & (1UL << bitIndex);
 }
 
-uint64_t Long_hash::distance(Long_hash& hash) {
+uint64_t Long_hash::distance(Long_hash* hash) {
   uint64_t dist = 0;
 
-  for (int i = 0; i < this->GetSizeBits(); ++i) {
-    if (((this->GetBit(i)) && !(hash.GetBit(i))) ||
-        (!(this->GetBit(i)) && (hash.GetBit(i)))) {
+  for (uint16_t i = 0; i < this->GetSizeBits(); ++i) {
+    if (((this->GetBit(i)) && !(hash->GetBit(i))) ||
+        (!(this->GetBit(i)) && (hash->GetBit(i)))) {
       ++dist;
     }
   }
