@@ -6,10 +6,10 @@ CONFIG += c++11
 CONFIG += console
 CONFIG -= app_bundle
 
-INCLUDEPATH += /mnt/raspberry-rootfs/usr/local/include/RF24/
-INCLUDEPATH += /mnt/raspberry-rootfs/usr/local/lib/
+INCLUDEPATH += /mnt/raspberry_root_fs/usr/local/include/RF24/
+INCLUDEPATH += /mnt/raspberry_root_fs/usr/local/lib/
 LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_objdetect -lrf24
-LIBS += /home/elesar/opt/gcc-4.7-linaro-rpi-gnueabihf/arm-linux-gnueabihf/lib/libstdc++.so.6.0.20 #if soft be have bugs, then build GCC v4.9!!!!!!!
+#LIBS += /home/elesar/opt/gcc-4.7-linaro-rpi-gnueabihf/arm-linux-gnueabihf/lib/libstdc++.so.6.0.20 #if soft be have bugs, then build GCC v4.9!!!!!!!
 
 target.path = /usr/bin
 INSTALLS += target

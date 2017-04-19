@@ -1,6 +1,10 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#ifndef QT_WARNING_DISABLE_DEPRECATED
+#define QT_WARNING_DISABLE_DEPRECATED
+#endif
+
 #include <RF24.h>
 
 #include <QObject>

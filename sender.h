@@ -1,6 +1,10 @@
 #ifndef SENDER_H
 #define SENDER_H
 
+#ifndef QT_WARNING_DISABLE_DEPRECATED
+#define QT_WARNING_DISABLE_DEPRECATED
+#endif
+
 #include <QObject>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
@@ -27,7 +31,7 @@ class Sender : public QObject {
 
  public slots:
 
-  bool SendPlease(const qint8, const qint8, const qint32, int, qint8);
+  bool SendPlease( qint8,  qint8,  qint32, int, qint8);
   bool IGetImage(const int, const char, const char);
   bool UartChecker(QByteArray&);
 

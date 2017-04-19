@@ -1,6 +1,10 @@
 #ifndef LONG_HASH_H
 #define LONG_HASH_H
 
+#ifndef QT_WARNING_DISABLE_DEPRECATED
+#define QT_WARNING_DISABLE_DEPRECATED
+#endif
+
 #include <stdint.h>
 #include <string>
 #include <iostream>
