@@ -41,10 +41,10 @@ public slots:
     bool Color_conv(cv::Mat, cv::Scalar, cv::Scalar);
     void LD_Checker(cv::Mat);
     qint8 Slim_Checker(cv::Mat);
-    qint8 Sovering_Checker(cv::Mat);
-    qint8 Winstone_Checker(cv::Mat);
+    void Sovering_Checker(cv::Mat);
+    void Winstone_Checker(cv::Mat);
     qint8 More_Checker(cv::Mat);
-    qint8 Mevius_Cheker(cv::Mat);
+    void Mevius_Cheker(cv::Mat);
 
 private slots:
 
